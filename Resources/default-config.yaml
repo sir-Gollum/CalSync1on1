@@ -1,0 +1,39 @@
+# CalSync1on1 Default Configuration
+version: "1.0"
+
+# Calendar pair defines which calendars to sync between
+calendar_pair:
+  name: "Work to Personal"
+  source:
+    account: null # Optional: specify account if multiple accounts
+    calendar: "Calendar" # Name of your work calendar
+  destination:
+    account: null # Optional: specify account if multiple accounts
+    calendar: "Personal" # Name of your personal calendar
+  title_template: "1:1 with {{otherPerson}}" # Template for synced event titles
+
+# Sync window configuration
+sync_window:
+  weeks: 2 # Number of weeks to sync (current + future weeks)
+  start_offset: 0 # Week offset from current week (0 = current week, -1 = previous week)
+
+# Event filtering rules
+filters:
+  exclude_all_day: true # Skip all-day events
+  exclude_private: true # Skip private events
+  exclude_keywords: # Skip events containing these keywords (case-insensitive)
+    - "standup"
+    - "all-hands"
+    - "team meeting"
+    - "scrum"
+    - "retrospective"
+
+# Recurring event handling
+recurring_events:
+  sync_series: true # Sync entire recurring series
+  handle_exceptions: true # Handle single instance changes in recurring series
+
+# Logging configuration
+logging:
+  level: "info" # Log levels: error, warn, info, debug
+  colored_output: true # Enable colored console output
