@@ -96,6 +96,7 @@ calendar_pair:
     account: null              # Optional: specify account if multiple accounts
     calendar: "$DEST_CALENDAR"
   title_template: "$TITLE_TEMPLATE"
+owner_email:  "$SOURCE_CALENDAR"
 
 # Sync window configuration
 sync_window:
