@@ -1,0 +1,20 @@
+disabled_rules:
+  - identifier_name
+
+excluded:
+  - .build
+
+# Allow longer parameter lists for configuration
+function_parameter_count:
+  warning: 8
+  error: 12
+
+# Allow some nesting for configuration structures
+nesting:
+  type_level:
+    warning: 2
+    error: 3
+
+# Require trailing commas in multi-line collections (common Swift style)
+trailing_comma:
+  mandatory_comma: true

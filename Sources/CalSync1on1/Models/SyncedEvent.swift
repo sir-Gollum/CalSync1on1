@@ -1,5 +1,5 @@
-import Foundation
 import EventKit
+import Foundation
 
 protocol EventProtocol {
     var eventIdentifier: String! { get }
@@ -19,27 +19,35 @@ struct SyncedEvent {
     let lastSyncDate: Date
 
     init(sourceEvent: EKEvent, otherPersonName: String) {
-        self.sourceEventId = sourceEvent.eventIdentifier
-        self.destinationEventId = nil
-        self.title = "1:1 with \(otherPersonName)"
-        self.startDate = sourceEvent.startDate
-        self.endDate = sourceEvent.endDate
+        sourceEventId = sourceEvent.eventIdentifier
+        destinationEventId = nil
+        title = "1:1 with \(otherPersonName)"
+        startDate = sourceEvent.startDate
+        endDate = sourceEvent.endDate
         self.otherPersonName = otherPersonName
-        self.lastSyncDate = Date()
+        lastSyncDate = Date()
     }
 
-    init<T: EventProtocol>(sourceEvent: T, otherPersonName: String) {
-        self.sourceEventId = sourceEvent.eventIdentifier
-        self.destinationEventId = nil
-        self.title = "1:1 with \(otherPersonName)"
-        self.startDate = sourceEvent.startDate
-        self.endDate = sourceEvent.endDate
+    init(sourceEvent: some EventProtocol, otherPersonName: String) {
+        sourceEventId = sourceEvent.eventIdentifier
+        destinationEventId = nil
+        title = "1:1 with \(otherPersonName)"
+        startDate = sourceEvent.startDate
+        endDate = sourceEvent.endDate
         self.otherPersonName = otherPersonName
-        self.lastSyncDate = Date()
+        lastSyncDate = Date()
     }
 
     // Memberwise initializer for testing
-    init(sourceEventId: String, destinationEventId: String?, title: String, startDate: Date, endDate: Date, otherPersonName: String, lastSyncDate: Date) {
+    init(
+        sourceEventId: String,
+        destinationEventId: String?,
+        title: String,
+        startDate: Date,
+        endDate: Date,
+        otherPersonName: String,
+        lastSyncDate: Date
+    ) {
         self.sourceEventId = sourceEventId
         self.destinationEventId = destinationEventId
         self.title = title

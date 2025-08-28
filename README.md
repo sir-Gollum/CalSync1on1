@@ -99,7 +99,7 @@ calendar_pair:
     account: null              # Optional: specify account
     calendar: "Calendar"       # Your work calendar name
   destination:
-    account: null              # Optional: specify account  
+    account: null              # Optional: specify account
     calendar: "Personal"       # Your personal calendar name
   title_template: "1:1 with {{otherPerson}}"
   owner_email: "john.doe@company.com"  # Optional: your email for better 1:1 detection
@@ -110,7 +110,6 @@ sync_window:
 
 filters:
   exclude_all_day: true         # Skip all-day events
-  exclude_private: true         # Skip private events
   exclude_keywords:             # Skip events with these keywords
     - "standup"
     - "all-hands"
@@ -190,7 +189,7 @@ calsync1on1 --version
    • Weekly Team Standup - 3 attendees
      Attendees: John Doe <john.doe@company.com>, Jane Smith <jane.smith@company.com>, Bob Wilson <bob@company.com>
      Time: 12/18/23, 9:00 AM
-   
+
    • 1:1 with Sarah - 2 attendees
      Attendees: John Doe <john.doe@company.com>, Sarah Johnson <sarah@company.com>
      Time: 12/19/23, 2:00 PM
@@ -309,7 +308,6 @@ calendar_pair:
 ```yaml
 filters:
   exclude_all_day: true
-  exclude_private: true
   exclude_keywords:
     - "standup"
     - "daily"
@@ -318,17 +316,6 @@ filters:
     - "all-hands"
     - "team meeting"
     - "planning"
-```
-
-### Recurring Event Configuration
-```yaml
-recurring_events:
-  sync_series: true              # Sync entire recurring series
-  handle_exceptions: true        # Handle single instance changes
-
-sync_window:
-  weeks: 4              # Sync 4 weeks total
-  start_offset: -1      # Start from last week
 ```
 
 ## 🔧 Development
@@ -356,7 +343,7 @@ CalSync1on1/
 ├── Sources/CalSync1on1/
 │   ├── main.swift                  # CLI entry point
 │   ├── Configuration.swift         # YAML config management
-│   ├── CalendarManager.swift       # EventKit operations  
+│   ├── CalendarManager.swift       # EventKit operations
 │   ├── MeetingAnalyzer.swift      # 1:1 meeting detection
 │   ├── SyncManager.swift          # Event synchronization
 │   ├── EventMetadata.swift        # Metadata tracking
@@ -396,11 +383,6 @@ CalSync1on1/
 - Verify file exists: `~/.config/calsync1on1/config.yaml`
 - Check YAML syntax with online validator
 - Run setup script to recreate: `./setup-config.sh`
-
-**Recurring events not syncing**
-- Ensure `recurring_events.sync_series` is `true` in config
-- Check that recurring 1:1 meetings have consistent attendees
-- Use `--verbose` flag to see recurring event analysis
 
 ### Debug Mode
 

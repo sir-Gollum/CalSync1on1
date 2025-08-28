@@ -1,5 +1,11 @@
-import Foundation
 import EventKit
+import Foundation
+
+struct EventAccessResult {
+    let success: Bool
+    let eventCount: Int
+    let error: String?
+}
 
 class CalendarManager {
     let eventStore = EKEventStore()
@@ -10,7 +16,7 @@ class CalendarManager {
 
         eventStore.requestAccess(to: .event) { granted, error in
             accessGranted = granted
-            if let error = error {
+            if let error {
                 print("Calendar access error: \(error.localizedDescription)")
             }
             semaphore.signal()
@@ -26,7 +32,7 @@ class CalendarManager {
     }
 
     func getEvents(from calendar: EKCalendar, startDate: Date, endDate: Date) -> [EKEvent] {
-        return getEvents(from: calendar, startDate: startDate, endDate: endDate, debug: false)
+        getEvents(from: calendar, startDate: startDate, endDate: endDate, debug: false)
     }
 
     func getEvents(from calendar: EKCalendar, startDate: Date, endDate: Date, debug: Bool) -> [EKEvent] {
@@ -56,7 +62,7 @@ class CalendarManager {
             if events.count > 0 {
                 print("       Sample events:")
                 for (i, event) in events.prefix(3).enumerated() {
-                    print("         [\(i+1)] \(event.title ?? "Untitled") at \(String(describing: event.startDate))")
+                    print("         [\(i + 1)] \(event.title ?? "Untitled") at \(String(describing: event.startDate))")
                 }
             }
         }
@@ -102,7 +108,7 @@ class CalendarManager {
     }
 
     func listAvailableCalendars() -> [EKCalendar] {
-        return eventStore.calendars(for: .event)
+        eventStore.calendars(for: .event)
     }
 
     // Debug helper methods
@@ -129,7 +135,7 @@ class CalendarManager {
         return debug
     }
 
-    func testEventAccess(calendar: EKCalendar, startDate: Date, endDate: Date) -> (success: Bool, eventCount: Int, error: String?) {
+    func testEventAccess(calendar: EKCalendar, startDate: Date, endDate: Date) -> EventAccessResult {
         let predicate = eventStore.predicateForEvents(
             withStart: startDate,
             end: endDate,
@@ -137,6 +143,6 @@ class CalendarManager {
         )
 
         let events = eventStore.events(matching: predicate)
-        return (true, events.count, nil)
+        return EventAccessResult(success: true, eventCount: events.count, error: nil)
     }
 }

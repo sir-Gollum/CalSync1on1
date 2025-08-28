@@ -1,6 +1,36 @@
 import Foundation
 import Yams
 
+// Command line arguments structure
+struct CommandLineArgs {
+    let configPath: String?
+    let dryRun: Bool
+    let verbose: Bool
+    let help: Bool
+    let version: Bool
+
+    static func parse() -> CommandLineArgs {
+        let args = CommandLine.arguments
+
+        return CommandLineArgs(
+            configPath: extractValue(for: "--config", from: args),
+            dryRun: args.contains("--dry-run"),
+            verbose: args.contains("--verbose"),
+            help: args.contains("--help") || args.contains("-h"),
+            version: args.contains("--version")
+        )
+    }
+
+    private static func extractValue(for flag: String, from args: [String]) -> String? {
+        guard let index = args.firstIndex(of: flag),
+              index + 1 < args.count
+        else {
+            return nil
+        }
+        return args[index + 1]
+    }
+}
+
 struct Configuration: Codable {
     let version: String
     let calendarPair: CalendarPair
@@ -50,12 +80,10 @@ struct Configuration: Codable {
     struct Filters: Codable {
         let excludeAllDay: Bool
         let excludeKeywords: [String]
-        let excludePrivate: Bool
 
         enum CodingKeys: String, CodingKey {
             case excludeAllDay = "exclude_all_day"
             case excludeKeywords = "exclude_keywords"
-            case excludePrivate = "exclude_private"
         }
     }
 
@@ -65,7 +93,7 @@ struct Configuration: Codable {
 
         enum CodingKeys: String, CodingKey {
             case level
-            case coloredOutput = "colored_output"
+            case coloredOutput = "colored_output" // TODO: not implemented
         }
     }
 
@@ -80,7 +108,7 @@ struct Configuration: Codable {
             ownerEmail: nil
         ),
         syncWindow: SyncWindow(weeks: 2, startOffset: 0),
-        filters: Filters(excludeAllDay: true, excludeKeywords: ["standup", "all-hands"], excludePrivate: true),
+        filters: Filters(excludeAllDay: true, excludeKeywords: ["standup", "all-hands"]),
         logging: Logging(level: "info", coloredOutput: true)
     )
 
@@ -113,7 +141,9 @@ struct Configuration: Codable {
             print("   Title template: \(config.calendarPair.titleTemplate)")
             print("   Sync window: \(config.syncWindow.weeks) weeks")
             if !config.filters.excludeKeywords.isEmpty {
-                print("   Excluded keywords: \(config.filters.excludeKeywords.joined(separator: ", "))")
+                print(
+                    "   Excluded keywords: \(config.filters.excludeKeywords.joined(separator: ", "))"
+                )
             }
             return config
         } catch {
@@ -129,48 +159,18 @@ struct Configuration: Codable {
         let configDir = URL(fileURLWithPath: configPath).deletingLastPathComponent()
 
         // Create config directory if it doesn't exist
-        try FileManager.default.createDirectory(at: configDir, withIntermediateDirectories: true, attributes: nil)
+        try FileManager.default.createDirectory(
+            at: configDir, withIntermediateDirectories: true, attributes: nil
+        )
 
         let yamlString = try YAMLEncoder().encode(self)
-        try yamlString.write(to: URL(fileURLWithPath: configPath), atomically: true, encoding: .utf8)
+        try yamlString.write(
+            to: URL(fileURLWithPath: configPath), atomically: true, encoding: .utf8
+        )
     }
 
     private static func defaultConfigPath() -> String {
         let homeDir = FileManager.default.homeDirectoryForCurrentUser
         return homeDir.appendingPathComponent(".config/calsync1on1/config.yaml").path
-    }
-
-    // Get the calendar pair
-    var primaryCalendarPair: CalendarPair {
-        return calendarPair
-    }
-}
-
-// Command line arguments structure
-struct CommandLineArgs {
-    let configPath: String?
-    let dryRun: Bool
-    let verbose: Bool
-    let help: Bool
-    let version: Bool
-
-    static func parse() -> CommandLineArgs {
-        let args = CommandLine.arguments
-
-        return CommandLineArgs(
-            configPath: extractValue(for: "--config", from: args),
-            dryRun: args.contains("--dry-run"),
-            verbose: args.contains("--verbose"),
-            help: args.contains("--help") || args.contains("-h"),
-            version: args.contains("--version")
-        )
-    }
-
-    private static func extractValue(for flag: String, from args: [String]) -> String? {
-        guard let index = args.firstIndex(of: flag),
-              index + 1 < args.count else {
-            return nil
-        }
-        return args[index + 1]
     }
 }

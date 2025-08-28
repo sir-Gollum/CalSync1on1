@@ -106,13 +106,8 @@ sync_window:
 # Event filtering rules
 filters:
   exclude_all_day: true         # Skip all-day events
-  exclude_private: true         # Skip private events
   exclude_keywords:             # Skip events containing these keywords (case-insensitive)
 $(echo -e "$YAML_KEYWORDS")
-# Recurring event handling
-recurring_events:
-  sync_series: true             # Sync entire recurring series
-  handle_exceptions: true       # Handle single instance changes in recurring series
 
 # Logging configuration
 logging:

@@ -217,11 +217,6 @@ sync_window:
 filters:
   exclude_all_day: true
   exclude_keywords: ["standup", "all-hands", "team meeting"]
-  exclude_private: true
-
-recurring_events:
-  sync_series: true      # Sync entire recurring series
-  handle_exceptions: true # Handle single instance changes
 
 logging:
   level: "info"          # error, warn, info, debug

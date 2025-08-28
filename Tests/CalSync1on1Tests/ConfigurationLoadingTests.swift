@@ -1,9 +1,9 @@
-import XCTest
 import Foundation
+import XCTest
+
 @testable import CalSync1on1
 
 final class ConfigurationLoadingTests: XCTestCase {
-
     private var tempConfigPath: String!
 
     override func setUp() {
@@ -38,7 +38,6 @@ final class ConfigurationLoadingTests: XCTestCase {
           start_offset: -1
         filters:
           exclude_all_day: true
-          exclude_private: false
           exclude_keywords:
             - "standup"
             - "daily scrum"
@@ -49,7 +48,10 @@ final class ConfigurationLoadingTests: XCTestCase {
         """
 
         // Write YAML to temp file
-        XCTAssertNoThrow(try yamlContent.write(to: URL(fileURLWithPath: tempConfigPath), atomically: true, encoding: .utf8))
+        XCTAssertNoThrow(
+            try yamlContent.write(
+                to: URL(fileURLWithPath: tempConfigPath), atomically: true, encoding: .utf8
+            ))
 
         // Load the configuration
         let config = Configuration.load(from: tempConfigPath)
@@ -71,7 +73,6 @@ final class ConfigurationLoadingTests: XCTestCase {
 
         // Test filters
         XCTAssertTrue(config.filters.excludeAllDay)
-        XCTAssertFalse(config.filters.excludePrivate)
         XCTAssertEqual(config.filters.excludeKeywords, ["standup", "daily scrum", "team meeting"])
 
         // Test logging
@@ -104,7 +105,10 @@ final class ConfigurationLoadingTests: XCTestCase {
           weeks: "invalid_number"  # Should be number, not string
         """
 
-        XCTAssertNoThrow(try invalidYaml.write(to: URL(fileURLWithPath: tempConfigPath), atomically: true, encoding: .utf8))
+        XCTAssertNoThrow(
+            try invalidYaml.write(
+                to: URL(fileURLWithPath: tempConfigPath), atomically: true, encoding: .utf8
+            ))
 
         // Should return default configuration when YAML is invalid
         let config = Configuration.load(from: tempConfigPath)
@@ -130,14 +134,16 @@ final class ConfigurationLoadingTests: XCTestCase {
           start_offset: 0
         filters:
           exclude_all_day: false
-          exclude_private: false
           exclude_keywords: []
         logging:
           level: "info"
           colored_output: false
         """
 
-        XCTAssertNoThrow(try minimalYaml.write(to: URL(fileURLWithPath: tempConfigPath), atomically: true, encoding: .utf8))
+        XCTAssertNoThrow(
+            try minimalYaml.write(
+                to: URL(fileURLWithPath: tempConfigPath), atomically: true, encoding: .utf8
+            ))
 
         let config = Configuration.load(from: tempConfigPath)
 
@@ -149,7 +155,6 @@ final class ConfigurationLoadingTests: XCTestCase {
         XCTAssertEqual(config.syncWindow.weeks, 1)
         XCTAssertEqual(config.syncWindow.startOffset, 0)
         XCTAssertFalse(config.filters.excludeAllDay)
-        XCTAssertFalse(config.filters.excludePrivate)
         XCTAssertTrue(config.filters.excludeKeywords.isEmpty)
         XCTAssertEqual(config.logging.level, "info")
         XCTAssertFalse(config.logging.coloredOutput)
@@ -172,7 +177,6 @@ final class ConfigurationLoadingTests: XCTestCase {
           start_offset: -2
         filters:
           exclude_all_day: true
-          exclude_private: true
           exclude_keywords:
             - "standup"
             - "daily"
@@ -187,7 +191,10 @@ final class ConfigurationLoadingTests: XCTestCase {
           colored_output: true
         """
 
-        XCTAssertNoThrow(try complexFiltersYaml.write(to: URL(fileURLWithPath: tempConfigPath), atomically: true, encoding: .utf8))
+        XCTAssertNoThrow(
+            try complexFiltersYaml.write(
+                to: URL(fileURLWithPath: tempConfigPath), atomically: true, encoding: .utf8
+            ))
 
         let config = Configuration.load(from: tempConfigPath)
 
@@ -202,7 +209,6 @@ final class ConfigurationLoadingTests: XCTestCase {
         XCTAssertEqual(config.syncWindow.startOffset, -2)
 
         XCTAssertTrue(config.filters.excludeAllDay)
-        XCTAssertTrue(config.filters.excludePrivate)
         XCTAssertEqual(config.filters.excludeKeywords.count, 8)
         XCTAssertTrue(config.filters.excludeKeywords.contains("standup"))
         XCTAssertTrue(config.filters.excludeKeywords.contains("all-hands"))
@@ -218,13 +224,19 @@ final class ConfigurationLoadingTests: XCTestCase {
             version: "1.0",
             calendarPair: Configuration.CalendarPair(
                 name: "Save Test",
-                source: Configuration.CalendarPair.CalendarInfo(account: "test@work.com", calendar: "Test Work"),
-                destination: Configuration.CalendarPair.CalendarInfo(account: "test@personal.com", calendar: "Test Personal"),
+                source: Configuration.CalendarPair.CalendarInfo(
+                    account: "test@work.com", calendar: "Test Work"
+                ),
+                destination: Configuration.CalendarPair.CalendarInfo(
+                    account: "test@personal.com", calendar: "Test Personal"
+                ),
                 titleTemplate: "Test: {{otherPerson}}",
                 ownerEmail: nil
             ),
             syncWindow: Configuration.SyncWindow(weeks: 5, startOffset: 1),
-            filters: Configuration.Filters(excludeAllDay: false, excludeKeywords: ["test1", "test2"], excludePrivate: false),
+            filters: Configuration.Filters(
+                excludeAllDay: false, excludeKeywords: ["test1", "test2"]
+            ),
             logging: Configuration.Logging(level: "warn", coloredOutput: false)
         )
 
@@ -240,11 +252,23 @@ final class ConfigurationLoadingTests: XCTestCase {
         // Verify loaded config matches original
         XCTAssertEqual(loadedConfig.version, customConfig.version)
         XCTAssertEqual(loadedConfig.calendarPair.name, customConfig.calendarPair.name)
-        XCTAssertEqual(loadedConfig.calendarPair.source.account, customConfig.calendarPair.source.account)
-        XCTAssertEqual(loadedConfig.calendarPair.source.calendar, customConfig.calendarPair.source.calendar)
-        XCTAssertEqual(loadedConfig.calendarPair.destination.account, customConfig.calendarPair.destination.account)
-        XCTAssertEqual(loadedConfig.calendarPair.destination.calendar, customConfig.calendarPair.destination.calendar)
-        XCTAssertEqual(loadedConfig.calendarPair.titleTemplate, customConfig.calendarPair.titleTemplate)
+        XCTAssertEqual(
+            loadedConfig.calendarPair.source.account, customConfig.calendarPair.source.account
+        )
+        XCTAssertEqual(
+            loadedConfig.calendarPair.source.calendar, customConfig.calendarPair.source.calendar
+        )
+        XCTAssertEqual(
+            loadedConfig.calendarPair.destination.account,
+            customConfig.calendarPair.destination.account
+        )
+        XCTAssertEqual(
+            loadedConfig.calendarPair.destination.calendar,
+            customConfig.calendarPair.destination.calendar
+        )
+        XCTAssertEqual(
+            loadedConfig.calendarPair.titleTemplate, customConfig.calendarPair.titleTemplate
+        )
         XCTAssertEqual(loadedConfig.syncWindow.weeks, customConfig.syncWindow.weeks)
         XCTAssertEqual(loadedConfig.syncWindow.startOffset, customConfig.syncWindow.startOffset)
         XCTAssertEqual(loadedConfig.filters.excludeKeywords, customConfig.filters.excludeKeywords)
@@ -267,14 +291,16 @@ final class ConfigurationLoadingTests: XCTestCase {
           start_offset: 0
         filters:
           exclude_all_day: true
-          exclude_private: true
           exclude_keywords: []
         logging:
           level: "info"
           colored_output: true
         """
 
-        XCTAssertNoThrow(try emptyKeywordsYaml.write(to: URL(fileURLWithPath: tempConfigPath), atomically: true, encoding: .utf8))
+        XCTAssertNoThrow(
+            try emptyKeywordsYaml.write(
+                to: URL(fileURLWithPath: tempConfigPath), atomically: true, encoding: .utf8
+            ))
 
         let config = Configuration.load(from: tempConfigPath)
 
@@ -299,14 +325,16 @@ final class ConfigurationLoadingTests: XCTestCase {
           start_offset: 0
         filters:
           exclude_all_day: true
-          exclude_private: true
           exclude_keywords: ["test"]
         logging:
           level: "info"
           colored_output: true
         """
 
-        XCTAssertNoThrow(try nullAccountsYaml.write(to: URL(fileURLWithPath: tempConfigPath), atomically: true, encoding: .utf8))
+        XCTAssertNoThrow(
+            try nullAccountsYaml.write(
+                to: URL(fileURLWithPath: tempConfigPath), atomically: true, encoding: .utf8
+            ))
 
         let config = Configuration.load(from: tempConfigPath)
 
@@ -316,7 +344,7 @@ final class ConfigurationLoadingTests: XCTestCase {
         XCTAssertEqual(config.calendarPair.destination.calendar, "Test Destination")
     }
 
-    func testPrimaryCalendarPairAccess() {
+    func testcalendarPairAccess() {
         let testYaml = """
         version: "1.0"
         calendar_pair:
@@ -331,21 +359,23 @@ final class ConfigurationLoadingTests: XCTestCase {
           start_offset: 0
         filters:
           exclude_all_day: true
-          exclude_private: true
           exclude_keywords: []
         logging:
           level: "info"
           colored_output: true
         """
 
-        XCTAssertNoThrow(try testYaml.write(to: URL(fileURLWithPath: tempConfigPath), atomically: true, encoding: .utf8))
+        XCTAssertNoThrow(
+            try testYaml.write(
+                to: URL(fileURLWithPath: tempConfigPath), atomically: true, encoding: .utf8
+            ))
 
         let config = Configuration.load(from: tempConfigPath)
-        let primaryPair = config.primaryCalendarPair
+        let calendarPair = config.calendarPair
 
-        XCTAssertEqual(primaryPair.name, "Primary Test")
-        XCTAssertEqual(primaryPair.source.calendar, "Primary Source")
-        XCTAssertEqual(primaryPair.destination.calendar, "Primary Destination")
-        XCTAssertEqual(primaryPair.titleTemplate, "Primary: {{otherPerson}}")
+        XCTAssertEqual(calendarPair.name, "Primary Test")
+        XCTAssertEqual(calendarPair.source.calendar, "Primary Source")
+        XCTAssertEqual(calendarPair.destination.calendar, "Primary Destination")
+        XCTAssertEqual(calendarPair.titleTemplate, "Primary: {{otherPerson}}")
     }
 }

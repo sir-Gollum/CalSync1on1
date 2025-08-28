@@ -1,10 +1,9 @@
-import Foundation
 import EventKit
+import Foundation
 
 class MeetingAnalyzer {
-
     func isOneOnOneMeeting(_ event: EKEvent, calendarOwner: String) -> Bool {
-        return isOneOnOneMeeting(event, calendarOwner: calendarOwner, debug: false)
+        isOneOnOneMeeting(event, calendarOwner: calendarOwner, debug: false)
     }
 
     func isOneOnOneMeeting(_ event: EKEvent, calendarOwner: String, debug: Bool) -> Bool {
@@ -63,7 +62,7 @@ class MeetingAnalyzer {
 
                 return false
             }
-            if debug && !matchFound {
+            if debug, !matchFound {
                 print("         DEBUG: No match found for attendee email: '\(email)'")
             }
             return matchFound
@@ -88,13 +87,14 @@ class MeetingAnalyzer {
                     let ownerEmailLower = ownerEmail.lowercased()
 
                     return emailLower == ownerEmailLower ||
-                           ownerEmailLower.contains(emailLower) ||
-                           emailLower.contains(ownerEmailLower) ||
-                           emailLower.components(separatedBy: "@").first == ownerEmailLower.components(separatedBy: "@").first
+                        ownerEmailLower.contains(emailLower) ||
+                        emailLower.contains(ownerEmailLower) ||
+                        emailLower.components(separatedBy: "@").first ==
+                        ownerEmailLower.components(separatedBy: "@").first
                 }
 
                 if !isOwner {
-                    return attendee.name ?? extractNameFromEmail(email)
+                    return extractNameFromEmail(email)
                 }
             }
         }
@@ -123,7 +123,7 @@ class MeetingAnalyzer {
             isOneOnOneRecurringSeries: baseAnalysis && hasRecurrenceRules,
             recurrenceRule: recurrenceRule?.description,
             shouldSyncSeries: baseAnalysis, // Sync recurring 1:1 series
-            exceptions: [] // TODO: Implement exception tracking
+            exceptions: [] // FIXME: Implement exception tracking in future version
         )
     }
 
@@ -137,7 +137,7 @@ class MeetingAnalyzer {
         return urlString
     }
 
-    private func getOwnerEmails(calendarOwner: String) -> [String] {
+    func getOwnerEmails(calendarOwner: String) -> [String] {
         var ownerEmails = [calendarOwner]
 
         // If the calendar owner looks like an email, also add just the local part
@@ -156,7 +156,7 @@ class MeetingAnalyzer {
         return ownerEmails
     }
 
-    private func extractNameFromEmail(_ email: String) -> String {
+    func extractNameFromEmail(_ email: String) -> String {
         let parts = email.components(separatedBy: "@")
         guard let localPart = parts.first else {
             return email
@@ -167,6 +167,18 @@ class MeetingAnalyzer {
             .replacingOccurrences(of: ".", with: " ")
             .replacingOccurrences(of: "_", with: " ")
             .capitalized
+    }
+
+    func getAttendeeDisplayName(_ attendee: EKParticipant) -> String {
+        if let name = attendee.name, !name.isEmpty {
+            return name
+        }
+
+        if let email = extractEmailFromParticipant(attendee) {
+            return extractNameFromEmail(email)
+        }
+
+        return "Unknown"
     }
 
     // Debug helper methods
@@ -181,7 +193,7 @@ class MeetingAnalyzer {
             details += "  Attendees:\n"
             for (i, attendee) in attendees.enumerated() {
                 let email = extractEmailFromParticipant(attendee)
-                details += "    [\(i+1)] \(attendee.name ?? "No name") <\(email ?? "No email")>\n"
+                details += "    [\(i + 1)] \(getAttendeeDisplayName(attendee)) <\(email ?? "No email")>\n"
                 details += "        Type: \(attendee.participantType.rawValue)\n"
                 details += "        Role: \(attendee.participantRole.rawValue)\n"
                 details += "        Status: \(attendee.participantStatus.rawValue)\n"
@@ -195,5 +207,42 @@ class MeetingAnalyzer {
         details += "  Is 1:1 meeting: \(is1on1)\n"
 
         return details
+    }
+
+    func getParticipantTypeLabel(participantType: Int) -> String {
+        switch participantType {
+        case 1:
+            "Person"
+        case 2:
+            "Room"
+        default:
+            "Group"
+        }
+    }
+
+    func getParticipantRoleLabel(participantRole: Int) -> String {
+        switch participantRole {
+        case 1:
+            "Chair"
+        case 2:
+            "Required"
+        default:
+            "Optional"
+        }
+    }
+
+    func getParticipantStatusLabel(participantStatus: Int) -> String {
+        switch participantStatus {
+        case 1:
+            "Unknown"
+        case 2:
+            "Pending"
+        case 3:
+            "Accepted"
+        case 4:
+            "Declines"
+        default:
+            "Tentative"
+        }
     }
 }

@@ -28,7 +28,6 @@ filters:
     - "retrospective"
     - "planning"
     - "review"
-  exclude_private: true
 
 logging:
   level: "info"
@@ -46,7 +45,6 @@ logging:
 # 3. If events are filtered out:
 #    - Set exclude_all_day: false
 #    - Remove keywords that might match your meetings
-#    - Set exclude_private: false
 #
 # 4. For troubleshooting, use this minimal config:
 #    - Set weeks: 4 and start_offset: -1 for wider date range
