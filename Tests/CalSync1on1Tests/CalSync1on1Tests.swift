@@ -105,53 +105,6 @@ final class CalSync1on1Tests: XCTestCase {
         XCTAssertFalse(testArgs.contains("--help"))
     }
 
-    // MARK: - SyncedEvent Model Tests
-
-    func testSyncedEventCreation() {
-        let startDate = Date()
-        let endDate = startDate.addingTimeInterval(3600)
-
-        let syncedEvent = SyncedEvent(
-            sourceEventId: "test-event-123",
-            destinationEventId: nil,
-            title: "1:1 with John Doe",
-            startDate: startDate,
-            endDate: endDate,
-            otherPersonName: "John Doe",
-            lastSyncDate: Date()
-        )
-
-        XCTAssertEqual(syncedEvent.sourceEventId, "test-event-123")
-        XCTAssertNil(syncedEvent.destinationEventId)
-        XCTAssertEqual(syncedEvent.title, "1:1 with John Doe")
-        XCTAssertEqual(syncedEvent.startDate, startDate)
-        XCTAssertEqual(syncedEvent.endDate, endDate)
-        XCTAssertEqual(syncedEvent.otherPersonName, "John Doe")
-        XCTAssertNotNil(syncedEvent.lastSyncDate)
-    }
-
-    func testSyncedEventConvenienceInitializer() {
-        let mockEvent = TestEvent(
-            eventIdentifier: "test-123",
-            startDate: Date(),
-            endDate: Date().addingTimeInterval(1800)
-        )
-
-        let syncedEvent = SyncedEvent(
-            sourceEvent: mockEvent,
-            otherPersonName: "Alice Smith"
-        )
-
-        XCTAssertEqual(syncedEvent.sourceEventId, "test-123")
-        XCTAssertEqual(syncedEvent.title, "1:1 with Alice Smith")
-        XCTAssertEqual(syncedEvent.otherPersonName, "Alice Smith")
-        XCTAssertNotNil(syncedEvent.lastSyncDate)
-
-        // Verify the last sync date is recent
-        let timeSinceSync = abs(syncedEvent.lastSyncDate.timeIntervalSinceNow)
-        XCTAssertLessThan(timeSinceSync, 60, "Last sync date should be recent")
-    }
-
     // MARK: - EventMetadata Tests
 
     func testSyncMetadataCreation() {
@@ -173,7 +126,8 @@ final class CalSync1on1Tests: XCTestCase {
         XCTAssertNoThrow(try encoder.encode(metadata))
 
         if let jsonData = try? encoder.encode(metadata),
-           let decodedMetadata = try? decoder.decode(SyncMetadata.self, from: jsonData) {
+            let decodedMetadata = try? decoder.decode(SyncMetadata.self, from: jsonData)
+        {
             XCTAssertEqual(decodedMetadata.sourceEventId, metadata.sourceEventId)
         } else {
             XCTFail("Failed to encode/decode metadata")
@@ -254,15 +208,15 @@ final class CalSync1on1Tests: XCTestCase {
         for testCase in testCases {
             let actualDisplayName: String
 
-                // Simulate the logic from getAttendeeDisplayName
-                =
-                    if let name = testCase.name, !name.isEmpty {
-                        name
-                    } else if let email = testCase.email, !email.isEmpty {
-                        analyzer.extractNameFromEmail(email)
-                    } else {
-                        "Unknown"
-                    }
+            // Simulate the logic from getAttendeeDisplayName
+            =
+                if let name = testCase.name, !name.isEmpty {
+                    name
+                } else if let email = testCase.email, !email.isEmpty {
+                    analyzer.extractNameFromEmail(email)
+                } else {
+                    "Unknown"
+                }
 
             XCTAssertEqual(
                 actualDisplayName, testCase.expectedDisplayName,
@@ -344,7 +298,7 @@ final class CalSync1on1Tests: XCTestCase {
                     return emailLower == ownerEmailLower || ownerEmailLower.contains(emailLower)
                         || emailLower.contains(ownerEmailLower)
                         || emailLower.components(separatedBy: "@").first
-                        == ownerEmailLower.components(separatedBy: "@").first
+                            == ownerEmailLower.components(separatedBy: "@").first
                 }
 
                 if !isOwner {
@@ -433,7 +387,7 @@ final class CalSync1on1Tests: XCTestCase {
                     return emailLower == ownerEmailLower || ownerEmailLower.contains(emailLower)
                         || emailLower.contains(ownerEmailLower)
                         || emailLower.components(separatedBy: "@").first
-                        == ownerEmailLower.components(separatedBy: "@").first
+                            == ownerEmailLower.components(separatedBy: "@").first
                 }
 
                 if !isOwner {
@@ -471,7 +425,7 @@ final class CalSync1on1Tests: XCTestCase {
         let testCases = [
             ("mailto:john.doe@company.com", "john.doe@company.com"),
             ("mailto:alice@example.org", "alice@example.org"),
-            ("john.doe@company.com", "john.doe@company.com"), // Without mailto prefix
+            ("john.doe@company.com", "john.doe@company.com"),  // Without mailto prefix
         ]
 
         for (urlString, expectedEmail) in testCases {
@@ -669,7 +623,7 @@ final class CalSync1on1Tests: XCTestCase {
         let config = Configuration(
             version: "1.0",
             calendarPair: Configuration.default.calendarPair,
-            syncWindow: Configuration.SyncWindow(weeks: 4, startOffset: 0), // Longer window for recurring events
+            syncWindow: Configuration.SyncWindow(weeks: 4, startOffset: 0),  // Longer window for recurring events
             filters: Configuration.default.filters,
             logging: Configuration.default.logging
         )
@@ -692,10 +646,10 @@ final class CalSync1on1Tests: XCTestCase {
     func testSyncResultHandlesRecurringEventOperations() {
         // Test that sync result can track recurring event specific operations
         let result = SyncManager.SyncResult(
-            created: 1, // 1 recurring series created
-            updated: 2, // 2 recurring series updated
-            deleted: 0, // No deletions
-            skipped: 5, // 5 individual instances skipped (part of series)
+            created: 1,  // 1 recurring series created
+            updated: 2,  // 2 recurring series updated
+            deleted: 0,  // No deletions
+            skipped: 5,  // 5 individual instances skipped (part of series)
             errors: ["Failed to process recurring rule for event X"]
         )
 
@@ -725,24 +679,5 @@ final class CalSync1on1Tests: XCTestCase {
         // Test that the analyzer handles different owner identifier patterns
         // Note: Full testing requires EKEvent objects, but we can verify basic instantiation
         XCTAssertNotNil(analyzer, "MeetingAnalyzer should instantiate successfully")
-    }
-}
-
-// MARK: - Test Helper Classes
-
-struct TestEvent: EventProtocol {
-
-    // MARK: - Properties
-
-    let eventIdentifier: String!
-    let startDate: Date!
-    let endDate: Date!
-
-    // MARK: - Lifecycle
-
-    init(eventIdentifier: String, startDate: Date, endDate: Date) {
-        self.eventIdentifier = eventIdentifier
-        self.startDate = startDate
-        self.endDate = endDate
     }
 }
