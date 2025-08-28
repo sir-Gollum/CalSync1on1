@@ -9,15 +9,15 @@ class MeetingAnalyzer {
     func isOneOnOneMeeting(_ event: EKEvent, calendarOwner: String, debug: Bool) -> Bool {
         // Skip all-day events
         if event.isAllDay {
-            if debug { print("         DEBUG: Skipping all-day event") }
+            if debug { Logger.debug("         DEBUG: Skipping all-day event") }
             return false
         }
 
         // Check if event has exactly 2 attendees (including organizer)
         let attendees = event.attendees ?? []
-        if debug { print("         DEBUG: Event has \(attendees.count) attendees") }
+        if debug { Logger.debug("         DEBUG: Event has \(attendees.count) attendees") }
         guard attendees.count == 2 else {
-            if debug { print("         DEBUG: Not exactly 2 attendees, skipping") }
+            if debug { Logger.debug("         DEBUG: Not exactly 2 attendees, skipping") }
             return false
         }
 
@@ -28,8 +28,8 @@ class MeetingAnalyzer {
         }
 
         if debug {
-            print("         DEBUG: Owner emails to match: \(ownerEmails)")
-            print("         DEBUG: Attendee emails: \(attendeeEmails)")
+            Logger.debug("         DEBUG: Owner emails to match: \(ownerEmails)")
+            Logger.debug("         DEBUG: Attendee emails: \(attendeeEmails)")
         }
 
         // More flexible matching - check if owner is one of the attendees
@@ -41,35 +41,46 @@ class MeetingAnalyzer {
 
                 // Direct match
                 if emailLower == ownerEmailLower {
-                    if debug { print("         DEBUG: Direct match found: '\(email)' == '\(ownerEmail)'") }
+                    if debug {
+                        Logger.debug(
+                            "         DEBUG: Direct match found: '\(email)' == '\(ownerEmail)'")
+                    }
                     return true
                 }
 
                 // Owner email contains the attendee email (for account names)
                 if ownerEmailLower.contains(emailLower) || emailLower.contains(ownerEmailLower) {
-                    if debug { print("         DEBUG: Contains match found: '\(email)' <-> '\(ownerEmail)'") }
+                    if debug {
+                        Logger.debug(
+                            "         DEBUG: Contains match found: '\(email)' <-> '\(ownerEmail)'")
+                    }
                     return true
                 }
 
                 // Extract domain-less parts and compare
                 let emailLocal = emailLower.components(separatedBy: "@").first ?? emailLower
-                let ownerLocal = ownerEmailLower.components(separatedBy: "@").first ?? ownerEmailLower
+                let ownerLocal =
+                    ownerEmailLower.components(separatedBy: "@").first ?? ownerEmailLower
 
                 if emailLocal == ownerLocal {
-                    if debug { print("         DEBUG: Local part match found: '\(emailLocal)' == '\(ownerLocal)'") }
+                    if debug {
+                        Logger.debug(
+                            "         DEBUG: Local part match found: '\(emailLocal)' == '\(ownerLocal)'"
+                        )
+                    }
                     return true
                 }
 
                 return false
             }
             if debug, !matchFound {
-                print("         DEBUG: No match found for attendee email: '\(email)'")
+                Logger.debug("         DEBUG: No match found for attendee email: '\(email)'")
             }
             return matchFound
         }
 
         if debug {
-            print("         DEBUG: Owner is attendee: \(ownerIsAttendee)")
+            Logger.debug("         DEBUG: Owner is attendee: \(ownerIsAttendee)")
         }
 
         return ownerIsAttendee
@@ -86,11 +97,10 @@ class MeetingAnalyzer {
                     let emailLower = email.lowercased()
                     let ownerEmailLower = ownerEmail.lowercased()
 
-                    return emailLower == ownerEmailLower ||
-                        ownerEmailLower.contains(emailLower) ||
-                        emailLower.contains(ownerEmailLower) ||
-                        emailLower.components(separatedBy: "@").first ==
-                        ownerEmailLower.components(separatedBy: "@").first
+                    return emailLower == ownerEmailLower || ownerEmailLower.contains(emailLower)
+                        || emailLower.contains(ownerEmailLower)
+                        || emailLower.components(separatedBy: "@").first
+                        == ownerEmailLower.components(separatedBy: "@").first
                 }
 
                 if !isOwner {
@@ -150,7 +160,8 @@ class MeetingAnalyzer {
         if !calendarOwner.contains("@") {
             // Add some common email patterns
             ownerEmails.append("\(calendarOwner.lowercased())@gmail.com")
-            ownerEmails.append("\(calendarOwner.lowercased().replacingOccurrences(of: " ", with: "."))@gmail.com")
+            ownerEmails.append(
+                "\(calendarOwner.lowercased().replacingOccurrences(of: " ", with: "."))@gmail.com")
         }
 
         return ownerEmails
@@ -163,10 +174,11 @@ class MeetingAnalyzer {
         }
 
         // Replace dots and underscores with spaces and capitalize
-        return localPart
-            .replacingOccurrences(of: ".", with: " ")
-            .replacingOccurrences(of: "_", with: " ")
-            .capitalized
+        return
+            localPart
+                .replacingOccurrences(of: ".", with: " ")
+                .replacingOccurrences(of: "_", with: " ")
+                .capitalized
     }
 
     func getAttendeeDisplayName(_ attendee: EKParticipant) -> String {
@@ -193,7 +205,8 @@ class MeetingAnalyzer {
             details += "  Attendees:\n"
             for (i, attendee) in attendees.enumerated() {
                 let email = extractEmailFromParticipant(attendee)
-                details += "    [\(i + 1)] \(getAttendeeDisplayName(attendee)) <\(email ?? "No email")>\n"
+                details +=
+                    "    [\(i + 1)] \(getAttendeeDisplayName(attendee)) <\(email ?? "No email")>\n"
                 details += "        Type: \(attendee.participantType.rawValue)\n"
                 details += "        Role: \(attendee.participantRole.rawValue)\n"
                 details += "        Status: \(attendee.participantStatus.rawValue)\n"

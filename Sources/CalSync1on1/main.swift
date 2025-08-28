@@ -61,30 +61,31 @@ func main() {
         exit(0)
     }
 
+    Logger.configure(verbose: args.verbose)
+
     // Initialize components
-    let logger = Logger(verbose: args.verbose)
     let configuration = Configuration.load(from: args.configPath)
     let calendarManager = CalendarManager()
     let analyzer = MeetingAnalyzer()
     let dateHelper = DateHelper(configuration: configuration)
-    let debugHelper = DebugHelper(logger: logger, analyzer: analyzer)
+    let debugHelper = DebugHelper(analyzer: analyzer)
     let syncManager = SyncManager(configuration: configuration, dryRun: args.dryRun)
 
-    logger.info("📅 CalSync1on1 - Syncing 1:1 meetings")
-    if args.dryRun { logger.info("🔍 DRY RUN MODE") }
+    Logger.info("📅 CalSync1on1 - Syncing 1:1 meetings")
+    if args.dryRun { Logger.info("🔍 DRY RUN MODE") }
 
     // Calendar access
-    logger.info("\n🔐 Checking calendar permissions...")
+    Logger.info("\n\t🔐 Checking calendar permissions...")
     guard calendarManager.requestAccess() else {
-        logger.error(
+        Logger.error(
             "Calendar access denied. Check System Preferences > Privacy & Security > Calendars")
         exit(1)
     }
-    logger.info("✅ Calendar access granted")
+    Logger.info("✅ Calendar access granted")
     debugHelper.printCalendarAccessDetails()
 
     // Find calendars
-    logger.info("\n🔍 Finding calendars...")
+    Logger.info("\n\t🔍 Finding calendars...")
     let availableCalendars = calendarManager.listAvailableCalendars()
     debugHelper.printAvailableCalendars(availableCalendars)
 
@@ -92,31 +93,31 @@ func main() {
     guard let sourceCalendar = calendarManager.findCalendar(named: calendarPair.source.calendar),
           let destCalendar = calendarManager.findCalendar(named: calendarPair.destination.calendar)
     else {
-        logger.error("Could not find required calendars. Available:")
+        Logger.error("Could not find required calendars. Available:")
         for calendar in availableCalendars {
-            logger.info("   • \(calendar.title)")
+            Logger.info("   • \(calendar.title)")
         }
         exit(1)
     }
 
-    logger.info("✅ Source: \(sourceCalendar.title)")
+    Logger.info("✅ Source: \(sourceCalendar.title)")
     debugHelper.printCalendarInfo(sourceCalendar, calendarManager: calendarManager)
-    logger.info("✅ Destination: \(destCalendar.title)")
+    Logger.info("✅ Destination: \(destCalendar.title)")
     debugHelper.printCalendarInfo(destCalendar, calendarManager: calendarManager)
 
     // Sync window
     let startDate = dateHelper.getCurrentWeekStart()
     let endDate = dateHelper.getSyncEndDate()
-    logger.info(
-        "\n📅 Sync window: \(DateHelper.formatDateLong(startDate)) to \(DateHelper.formatDateLong(endDate))"
+    Logger.info(
+        "📅 Sync window: \(DateHelper.formatDateLong(startDate)) to \(DateHelper.formatDateLong(endDate))"
     )
 
     // Fetch events
-    logger.info("\n📥 Fetching events...")
+    Logger.info("\n\t📥 Fetching events...")
     let events = calendarManager.getEvents(
-        from: sourceCalendar, startDate: startDate, endDate: endDate, debug: logger.isVerbose
+        from: sourceCalendar, startDate: startDate, endDate: endDate, debug: Logger.isVerbose
     )
-    logger.info("Found \(events.count) total events")
+    Logger.info("Found \(events.count) total events")
 
     // Handle empty events
     if events.isEmpty {
@@ -129,7 +130,7 @@ func main() {
 
     // Analyze events
     let calendarOwner = calendarPair.ownerEmail ?? sourceCalendar.source.title
-    logger.debug("Using owner identifier: '\(calendarOwner)'")
+    Logger.debug("Using owner identifier: '\(calendarOwner)'")
 
     debugHelper.printComprehensiveEventAnalysis(
         events, calendarOwner: calendarOwner, configuration: configuration
@@ -137,24 +138,24 @@ func main() {
 
     // Apply filters
     let filteredEvents = EventFilter.applyFilters(
-        events, configuration: configuration, logger: logger
+        events, configuration: configuration
     )
-    logger.info("📊 \(filteredEvents.count) events left after filtering")
+    Logger.info("📊 \(filteredEvents.count) events left after filtering")
 
     // Find 1:1 meetings
     let oneOnOneMeetings = filteredEvents.filter {
         analyzer.isOneOnOneMeeting($0, calendarOwner: calendarOwner)
     }
-    logger.info("📊 Found \(oneOnOneMeetings.count) 1:1 meetings")
+    Logger.info("📊 Found \(oneOnOneMeetings.count) 1:1 meetings")
 
     // Debug 1:1 details
-    if logger.isVerbose, !oneOnOneMeetings.isEmpty {
-        logger.debug("1:1 meetings:")
+    if Logger.isVerbose, !oneOnOneMeetings.isEmpty {
+        Logger.debug("1:1 meetings:")
         for meeting in oneOnOneMeetings {
             let otherPerson = analyzer.getOtherPersonName(
                 from: meeting, calendarOwner: calendarOwner
             )
-            logger.debug("   • \(meeting.title ?? "Untitled") with \(otherPerson)")
+            Logger.debug("   • \(meeting.title ?? "Untitled") with \(otherPerson)")
         }
     }
 
@@ -164,7 +165,7 @@ func main() {
 
     // Sync
     if !oneOnOneMeetings.isEmpty {
-        logger.info("\n🔄 Synchronizing...")
+        Logger.info("\n\t🔄 Synchronizing...")
         let result = syncManager.syncEvents(
             oneOnOneMeetings, from: sourceCalendar, to: destCalendar,
             analyzer: analyzer, calendarOwner: calendarOwner
@@ -174,7 +175,8 @@ func main() {
         if !result.errors.isEmpty { exit(1) }
     }
 
-    logger.info(args.dryRun ? "\n💡 Run without --dry-run to apply changes" : "\n🎉 Sync completed!")
+    Logger.info(
+        args.dryRun ? "\n\t💡 Run without --dry-run to apply changes" : "\n\t🎉 Sync completed!")
 }
 
 main()

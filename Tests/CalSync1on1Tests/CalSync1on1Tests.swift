@@ -659,7 +659,6 @@ final class CalSync1on1Tests: XCTestCase {
     }
 
     func testEventMetadataForRecurringEvents() {
-        let startDate = Date()
         let metadata = SyncMetadata(sourceEventId: "recurring-source-123")
 
         // Test that metadata can handle recurring event information

@@ -1,22 +1,49 @@
 import Foundation
 
 class Logger {
-    let isVerbose: Bool
+    private let isVerbose: Bool
+
+    // Shared instance for static methods
+    static var shared = Logger()
 
     init(verbose: Bool = false) {
         isVerbose = verbose
     }
 
+    // Static properties
+    static var isVerbose: Bool {
+        shared.isVerbose
+    }
+
+    // Static methods that delegate to shared instance
+    static func info(_ message: String) {
+        shared.info(message)
+    }
+
+    static func debug(_ message: String) {
+        shared.debug(message)
+    }
+
+    static func error(_ message: String) {
+        shared.error(message)
+    }
+
+    // Configure the shared logger
+    static func configure(verbose: Bool) {
+        shared = Logger(verbose: verbose)
+    }
+
+    // Instance methods
     func info(_ message: String) {
-        print(message)
+        print("[INFO]  \(message)")
     }
 
     func debug(_ message: String) {
         guard isVerbose else { return }
-        print(message)
+        print("[DEBUG] \(message)")
     }
 
     func error(_ message: String) {
-        fputs("❌ \(message)\n", stderr)
+        fputs("[ERROR] \(message)\n", stderr)
     }
 }

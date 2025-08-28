@@ -17,7 +17,7 @@ class CalendarManager {
         eventStore.requestAccess(to: .event) { granted, error in
             accessGranted = granted
             if let error {
-                print("Calendar access error: \(error.localizedDescription)")
+                Logger.error("Calendar access error: \(error.localizedDescription)")
             }
             semaphore.signal()
         }
@@ -35,14 +35,16 @@ class CalendarManager {
         getEvents(from: calendar, startDate: startDate, endDate: endDate, debug: false)
     }
 
-    func getEvents(from calendar: EKCalendar, startDate: Date, endDate: Date, debug: Bool) -> [EKEvent] {
+    func getEvents(from calendar: EKCalendar, startDate: Date, endDate: Date, debug: Bool)
+        -> [EKEvent]
+    {
         if debug {
-            print("     🔍 CalendarManager.getEvents debug:")
-            print("       Calendar: \(calendar.title) (\(calendar.calendarIdentifier))")
-            print("       Start: \(startDate)")
-            print("       End: \(endDate)")
-            print("       Calendar type: \(calendar.type.rawValue)")
-            print("       Calendar source: \(calendar.source.title)")
+            Logger.debug("     🔍 CalendarManager.getEvents debug:")
+            Logger.debug("       Calendar: \(calendar.title) (\(calendar.calendarIdentifier))")
+            Logger.debug("       Start: \(startDate)")
+            Logger.debug("       End: \(endDate)")
+            Logger.debug("       Calendar type: \(calendar.type.rawValue)")
+            Logger.debug("       Calendar source: \(calendar.source.title)")
         }
 
         let predicate = eventStore.predicateForEvents(
@@ -52,17 +54,19 @@ class CalendarManager {
         )
 
         if debug {
-            print("       ✅ Predicate created successfully")
+            Logger.debug("       ✅ Predicate created successfully")
         }
 
         let events = eventStore.events(matching: predicate)
 
         if debug {
-            print("       📊 Raw events returned: \(events.count)")
+            Logger.debug("       📊 Raw events returned: \(events.count)")
             if events.count > 0 {
-                print("       Sample events:")
+                Logger.debug("       Sample events:")
                 for (i, event) in events.prefix(3).enumerated() {
-                    print("         [\(i + 1)] \(event.title ?? "Untitled") at \(String(describing: event.startDate))")
+                    Logger.debug(
+                        "         [\(i + 1)] \(event.title ?? "Untitled") at \(String(describing: event.startDate))"
+                    )
                 }
             }
         }
@@ -81,7 +85,7 @@ class CalendarManager {
             try eventStore.save(event, span: .thisEvent)
             return true
         } catch {
-            print("Error creating event: \(error.localizedDescription)")
+            Logger.error("Error creating event: \(error.localizedDescription)")
             return false
         }
     }
@@ -129,7 +133,8 @@ class CalendarManager {
 
         for calendar in calendars {
             debug += "    • \(calendar.title) (\(calendar.source.title))\n"
-            debug += "      Type: \(calendar.type.rawValue), Writable: \(calendar.allowsContentModifications)\n"
+            debug +=
+                "      Type: \(calendar.type.rawValue), Writable: \(calendar.allowsContentModifications)\n"
         }
 
         return debug

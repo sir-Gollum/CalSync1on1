@@ -15,7 +15,7 @@ class EventMetadata {
         guard let jsonData = try? JSONEncoder().encode(metadata),
               let jsonString = String(data: jsonData, encoding: .utf8)
         else {
-            print("Warning: Failed to encode sync metadata for event \(event)")
+            Logger.error("Failed to encode sync metadata for event \(event)")
             return
         }
 
@@ -48,7 +48,7 @@ class EventMetadata {
         guard let jsonData = jsonString.data(using: .utf8),
               let metadata = try? JSONDecoder().decode(SyncMetadata.self, from: jsonData)
         else {
-            print("Warning: Failed to decode sync metadata for event \(event)")
+            Logger.error("Failed to decode sync metadata for event \(event)")
             return nil
         }
 

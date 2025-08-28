@@ -39,7 +39,7 @@ class SyncManager {
     ) -> SyncResult {
         var result = SyncResult(created: 0, updated: 0, deleted: 0, skipped: 0, errors: [])
 
-        print(dryRun ? "🔍 DRY RUN MODE - No changes will be made" : "🔄 Starting sync...")
+        Logger.info(dryRun ? "🔍 DRY RUN MODE - No changes will be made" : "🔄 Starting sync...")
 
         // Progress tracking
         let totalEvents = sourceEvents.count
@@ -53,7 +53,7 @@ class SyncManager {
                processedEvents % max(1, totalEvents / 10) == 0 || processedEvents == totalEvents
             {
                 let percentage = (processedEvents * 100) / totalEvents
-                print(
+                Logger.info(
                     "📊 Progress: \(processedEvents)/\(totalEvents) events processed (\(percentage)%)"
                 )
             }
@@ -146,8 +146,9 @@ class SyncManager {
                 expectedTitle: syncedTitle
             ) {
                 if dryRun {
-                    print(
-                        "📝 Would update: '\(syncedTitle)' at \(DateHelper.formatDate(sourceEvent.startDate))")
+                    Logger.info(
+                        "📝 Would update: '\(syncedTitle)' at \(DateHelper.formatDate(sourceEvent.startDate))"
+                    )
                     return .updated
                 } else {
                     if updateExistingEvent(
@@ -157,7 +158,9 @@ class SyncManager {
                         otherPersonName: otherPersonName,
                         sourceCalendar: sourceCalendar
                     ) {
-                        print("📝 Updated: '\(syncedTitle)' at \(DateHelper.formatDate(sourceEvent.startDate))")
+                        Logger.info(
+                            "📝 Updated: '\(syncedTitle)' at \(DateHelper.formatDate(sourceEvent.startDate))"
+                        )
                         return .updated
                     } else {
                         return .error("Failed to update event: \(syncedTitle)")
@@ -165,14 +168,16 @@ class SyncManager {
                 }
             } else {
                 if configuration.logging.level == "debug" {
-                    print("⏭️  Skipped: '\(syncedTitle)' (up to date)")
+                    Logger.info("⏭️  Skipped: '\(syncedTitle)' (up to date)")
                 }
                 return .skipped
             }
         } else {
             // Create new synced event
             if dryRun {
-                print("➕ Would create: '\(syncedTitle)' at \(DateHelper.formatDate(sourceEvent.startDate))")
+                Logger.info(
+                    "➕ Would create: '\(syncedTitle)' at \(DateHelper.formatDate(sourceEvent.startDate))"
+                )
                 return .created
             } else {
                 if createNewSyncedEvent(
@@ -182,7 +187,9 @@ class SyncManager {
                     otherPersonName: otherPersonName,
                     sourceCalendar: sourceCalendar
                 ) {
-                    print("✅ Created: '\(syncedTitle)' at \(DateHelper.formatDate(sourceEvent.startDate))")
+                    Logger.info(
+                        "✅ Created: '\(syncedTitle)' at \(DateHelper.formatDate(sourceEvent.startDate))"
+                    )
                     return .created
                 } else {
                     return .error("Failed to create event: \(syncedTitle)")
@@ -211,7 +218,7 @@ class SyncManager {
                 expectedTitle: syncedTitle
             ) {
                 if dryRun {
-                    print(
+                    Logger.info(
                         "📝 Would update recurring series: '\(syncedTitle)' "
                             + "starting \(DateHelper.formatDate(sourceEvent.startDate))")
                     return .updated
@@ -223,7 +230,7 @@ class SyncManager {
                         otherPersonName: otherPersonName,
                         sourceCalendar: sourceCalendar
                     ) {
-                        print(
+                        Logger.info(
                             "📝 Updated recurring series: '\(syncedTitle)' "
                                 + "starting \(DateHelper.formatDate(sourceEvent.startDate))")
                         return .updated
@@ -233,14 +240,14 @@ class SyncManager {
                 }
             } else {
                 if configuration.logging.level == "debug" {
-                    print("⏭️  Skipped recurring series: '\(syncedTitle)' (up to date)")
+                    Logger.info("⏭️  Skipped recurring series: '\(syncedTitle)' (up to date)")
                 }
                 return .skipped
             }
         } else {
             // Create new recurring synced event
             if dryRun {
-                print(
+                Logger.info(
                     "➕ Would create recurring series: '\(syncedTitle)' "
                         + "starting \(DateHelper.formatDate(sourceEvent.startDate))")
                 return .created
@@ -252,7 +259,7 @@ class SyncManager {
                     otherPersonName: otherPersonName,
                     sourceCalendar: sourceCalendar
                 ) {
-                    print(
+                    Logger.info(
                         "✅ Created recurring series: '\(syncedTitle)' "
                             + "starting \(DateHelper.formatDate(sourceEvent.startDate))")
                     return .created
@@ -306,7 +313,7 @@ class SyncManager {
             try calendarManager.eventStore.save(event, span: .thisEvent)
             return true
         } catch {
-            print("Error creating event: \(error.localizedDescription)")
+            Logger.error("Error creating event: \(error.localizedDescription)")
             return false
         }
     }
@@ -339,7 +346,7 @@ class SyncManager {
             try calendarManager.eventStore.save(event, span: .futureEvents)
             return true
         } catch {
-            print("Error creating recurring event: \(error.localizedDescription)")
+            Logger.error("Error creating recurring event: \(error.localizedDescription)")
             return false
         }
     }
@@ -370,7 +377,7 @@ class SyncManager {
             try calendarManager.eventStore.save(existingEvent, span: .futureEvents)
             return true
         } catch {
-            print("Error updating recurring event: \(error.localizedDescription)")
+            Logger.error("Error updating recurring event: \(error.localizedDescription)")
             return false
         }
     }
@@ -396,7 +403,7 @@ class SyncManager {
             try calendarManager.eventStore.save(existingEvent, span: .thisEvent)
             return true
         } catch {
-            print("Error updating event: \(error.localizedDescription)")
+            Logger.error("Error updating event: \(error.localizedDescription)")
             return false
         }
     }
@@ -435,14 +442,14 @@ class SyncManager {
 
             if !validSourceEventIds.contains(metadata.sourceEventId) {
                 if dryRun {
-                    print("🗑️  Would delete orphaned: '\(syncedEvent.title ?? "Untitled")'")
+                    Logger.info("🗑️  Would delete orphaned: '\(syncedEvent.title ?? "Untitled")'")
                 } else {
                     do {
                         try calendarManager.eventStore.remove(syncedEvent, span: .thisEvent)
-                        print("🗑️  Deleted orphaned: '\(syncedEvent.title ?? "Untitled")'")
+                        Logger.info("🗑️  Deleted orphaned: '\(syncedEvent.title ?? "Untitled")'")
                         deletedCount += 1
                     } catch {
-                        print("Error deleting orphaned event: \(error.localizedDescription)")
+                        Logger.error("Error deleting orphaned event: \(error.localizedDescription)")
                     }
                 }
             }
@@ -453,36 +460,32 @@ class SyncManager {
 
     // Print detailed sync summary
     func printSummary(_ result: SyncResult) {
-        print("\n" + "=" * 50)
-        print(dryRun ? "🔍 DRY RUN SUMMARY" : "📊 SYNC SUMMARY")
-        print("=" * 50)
+        Logger.info("\n\t" + "=" * 50)
+        Logger.info(dryRun ? "🔍 DRY RUN SUMMARY" : "📊 SYNC SUMMARY")
+        Logger.info("=" * 50)
 
         if dryRun {
-            print("📋 Changes that would be made:")
+            Logger.info("📋 Changes that would be made:")
         } else {
-            print("📋 Changes made:")
+            Logger.info("📋 Changes made:")
         }
 
-        print("  ➕ Created: \(result.created)")
-        print("  📝 Updated: \(result.updated)")
-        print("  🗑️  Deleted: \(result.deleted)")
-        print("  ⏭️  Skipped: \(result.skipped)")
+        Logger.info("  ➕ Created: \(result.created)")
+        Logger.info("  📝 Updated: \(result.updated)")
+        Logger.info("  🗑️  Deleted: \(result.deleted)")
+        Logger.info("  ⏭️  Skipped: \(result.skipped)")
 
         if !result.errors.isEmpty {
-            print("  ❌ Errors: \(result.errors.count)")
+            Logger.error("  ❌ Errors: \(result.errors.count)")
             for error in result.errors {
-                print("     • \(error)")
+                Logger.error("     • \(error)")
             }
         }
 
         let totalProcessed = result.created + result.updated + result.deleted + result.skipped
-        print("\n📈 Total events processed: \(totalProcessed)")
+        Logger.info("\n\t📈 Total events processed: \(totalProcessed)")
 
-        if dryRun {
-            print("\n💡 Run without --dry-run to apply these changes")
-        }
-
-        print("=" * 50)
+        Logger.info("=" * 50)
     }
 }
 

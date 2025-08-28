@@ -4,14 +4,13 @@ import Foundation
 enum EventFilter {
     static func applyFilters(
         _ events: [EKEvent],
-        configuration: Configuration,
-        logger: Logger
+        configuration: Configuration
     ) -> [EKEvent] {
         events.filter { event in
             let (passes, reasons) = checkFilters(event, configuration: configuration)
 
             if !passes {
-                logger.debug(
+                Logger.debug(
                     "   ⏭️ Skipping '\(event.title ?? "Untitled")': \(reasons.joined(separator: ", "))"
                 )
             }

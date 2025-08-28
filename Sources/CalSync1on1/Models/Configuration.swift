@@ -117,38 +117,38 @@ struct Configuration: Codable {
         let configPath = path ?? defaultConfigPath()
 
         guard FileManager.default.fileExists(atPath: configPath) else {
-            print("Using default configuration (config file not found at \(configPath))")
+            Logger.info("Using default configuration (config file not found at \(configPath))")
             return .default
         }
 
         guard let data = try? Data(contentsOf: URL(fileURLWithPath: configPath)) else {
-            print("Error: Could not read configuration file at \(configPath)")
-            print("Using default configuration")
+            Logger.error("Error: Could not read configuration file at \(configPath)")
+            Logger.info("Using default configuration")
             return .default
         }
 
         guard let yamlString = String(data: data, encoding: .utf8) else {
-            print("Error: Could not decode configuration file as UTF-8")
-            print("Using default configuration")
+            Logger.error("Error: Could not decode configuration file as UTF-8")
+            Logger.info("Using default configuration")
             return .default
         }
 
         do {
             let config = try YAMLDecoder().decode(Configuration.self, from: yamlString)
-            print("✅ Loaded configuration from \(configPath)")
-            print("   Source calendar: \(config.calendarPair.source.calendar)")
-            print("   Destination calendar: \(config.calendarPair.destination.calendar)")
-            print("   Title template: \(config.calendarPair.titleTemplate)")
-            print("   Sync window: \(config.syncWindow.weeks) weeks")
+            Logger.info("✅ Loaded configuration from \(configPath)")
+            Logger.info("   Source calendar: \(config.calendarPair.source.calendar)")
+            Logger.info("   Destination calendar: \(config.calendarPair.destination.calendar)")
+            Logger.info("   Title template: \(config.calendarPair.titleTemplate)")
+            Logger.info("   Sync window: \(config.syncWindow.weeks) weeks")
             if !config.filters.excludeKeywords.isEmpty {
-                print(
+                Logger.info(
                     "   Excluded keywords: \(config.filters.excludeKeywords.joined(separator: ", "))"
                 )
             }
             return config
         } catch {
-            print("Error: Failed to parse YAML configuration: \(error)")
-            print("Using default configuration")
+            Logger.error("Error: Failed to parse YAML configuration: \(error)")
+            Logger.info("Using default configuration")
             return .default
         }
     }
