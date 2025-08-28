@@ -319,25 +319,23 @@ make check          # Comprehensive validation
 ### Project Structure
 ```
 CalSync1on1/
-├── Package.swift                        # Swift package manifest
-├── Makefile                             # Build automation
-├── setup-config.sh                      # Interactive configuration setup
-├── example-config.yaml                  # Example configuration file
 ├── Sources/CalSync1on1/
-│   ├── main.swift                       # CLI entry point and main logic
 │   ├── CalendarManager.swift            # EventKit calendar operations
-│   ├── MeetingAnalyzer.swift            # 1:1 meeting detection logic
-│   ├── SyncManager.swift                # Event synchronization engine
-│   ├── EventMetadata.swift              # Metadata tracking for event linking
-│   ├── EventFilter.swift                # Event filtering logic
+│   ├── Configuration.swift              # YAML config management & validation
 │   ├── DateHelper.swift                 # Date range utilities
-│   ├── Logger.swift                     # Logging system with verbosity levels
 │   ├── DebugHelper.swift                # Comprehensive debugging utilities
-│   └── Models/
-│       ├── Configuration.swift          # YAML config management & validation
-│       └── SyncedEvent.swift            # Data models for synced events
+│   ├── EventFilter.swift                # Event filtering logic
+│   ├── EventMetadata.swift              # Metadata tracking for event linking
+│   ├── Logger.swift                     # Logging system with verbosity levels
+│   ├── main.swift                       # CLI entry point and main logic
+│   ├── MeetingAnalyzer.swift            # 1:1 meeting detection logic
+│   └── SyncManager.swift                # Event synchronization engine
 ├── Tests/CalSync1on1Tests/              # Comprehensive unit tests
 └── README.md
+├── example-config.yaml                  # Example configuration file
+├── Makefile                             # Build automation
+├── Package.swift                        # Swift package manifest
+└── setup-config.sh                      # Interactive configuration setup
 ```
 
 ## 🚨 Troubleshooting
