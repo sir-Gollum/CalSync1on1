@@ -173,8 +173,7 @@ final class CalSync1on1Tests: XCTestCase {
         XCTAssertNoThrow(try encoder.encode(metadata))
 
         if let jsonData = try? encoder.encode(metadata),
-           let decodedMetadata = try? decoder.decode(SyncMetadata.self, from: jsonData)
-        {
+           let decodedMetadata = try? decoder.decode(SyncMetadata.self, from: jsonData) {
             XCTAssertEqual(decodedMetadata.sourceEventId, metadata.sourceEventId)
         } else {
             XCTFail("Failed to encode/decode metadata")
@@ -732,9 +731,14 @@ final class CalSync1on1Tests: XCTestCase {
 // MARK: - Test Helper Classes
 
 struct TestEvent: EventProtocol {
+
+    // MARK: - Properties
+
     let eventIdentifier: String!
     let startDate: Date!
     let endDate: Date!
+
+    // MARK: - Lifecycle
 
     init(eventIdentifier: String, startDate: Date, endDate: Date) {
         self.eventIdentifier = eventIdentifier

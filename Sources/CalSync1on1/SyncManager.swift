@@ -2,25 +2,8 @@ import EventKit
 import Foundation
 
 class SyncManager {
-    private let calendarManager = CalendarManager()
-    private let configuration: Configuration
-    private let dryRun: Bool
 
-    init(configuration: Configuration, dryRun: Bool = false) {
-        self.configuration = configuration
-        self.dryRun = dryRun
-    }
-
-    private var calendarPair: Configuration.CalendarPair {
-        configuration.calendarPair
-    }
-
-    private enum SyncAction {
-        case created
-        case updated
-        case skipped
-        case error(String)
-    }
+    // MARK: - Nested Types
 
     struct SyncResult {
         var created: Int
@@ -30,13 +13,42 @@ class SyncManager {
         var errors: [String]
     }
 
+    private enum SyncAction {
+        case created
+        case updated
+        case skipped
+        case error(String)
+    }
+
+    // MARK: - Properties
+
+    private let calendarManager = CalendarManager()
+    private let configuration: Configuration
+    private let dryRun: Bool
+
+    // MARK: - Computed Properties
+
+    private var calendarPair: Configuration.CalendarPair {
+        configuration.calendarPair
+    }
+
+    // MARK: - Lifecycle
+
+    init(configuration: Configuration, dryRun: Bool = false) {
+        self.configuration = configuration
+        self.dryRun = dryRun
+    }
+
+    // MARK: - Functions
+
     func syncEvents(
         _ sourceEvents: [EKEvent],
         from sourceCalendar: EKCalendar,
         to destCalendar: EKCalendar,
         analyzer: MeetingAnalyzer,
         calendarOwner: String
-    ) -> SyncResult {
+    )
+        -> SyncResult {
         var result = SyncResult(created: 0, updated: 0, deleted: 0, skipped: 0, errors: [])
 
         Logger.info(dryRun ? "🔍 DRY RUN MODE - No changes will be made" : "🔄 Starting sync...")
@@ -50,8 +62,7 @@ class SyncManager {
 
             // Show progress for large operations
             if totalEvents > 10,
-               processedEvents % max(1, totalEvents / 10) == 0 || processedEvents == totalEvents
-            {
+               processedEvents % max(1, totalEvents / 10) == 0 || processedEvents == totalEvents {
                 let percentage = (processedEvents * 100) / totalEvents
                 Logger.info(
                     "📊 Progress: \(processedEvents)/\(totalEvents) events processed (\(percentage)%)"
@@ -93,12 +104,43 @@ class SyncManager {
         return result
     }
 
+    // Print detailed sync summary
+    func printSummary(_ result: SyncResult) {
+        Logger.info("\n\t" + "=" * 50)
+        Logger.info(dryRun ? "🔍 DRY RUN SUMMARY" : "📊 SYNC SUMMARY")
+        Logger.info("=" * 50)
+
+        if dryRun {
+            Logger.info("📋 Changes that would be made:")
+        } else {
+            Logger.info("📋 Changes made:")
+        }
+
+        Logger.info("  ➕ Created: \(result.created)")
+        Logger.info("  📝 Updated: \(result.updated)")
+        Logger.info("  🗑️  Deleted: \(result.deleted)")
+        Logger.info("  ⏭️  Skipped: \(result.skipped)")
+
+        if !result.errors.isEmpty {
+            Logger.error("  ❌ Errors: \(result.errors.count)")
+            for error in result.errors {
+                Logger.error("     • \(error)")
+            }
+        }
+
+        let totalProcessed = result.created + result.updated + result.deleted + result.skipped
+        Logger.info("\n\t📈 Total events processed: \(totalProcessed)")
+
+        Logger.info("=" * 50)
+    }
+
     private func syncEvent(
         _ sourceEvent: EKEvent,
         to destCalendar: EKCalendar,
         sourceCalendar: EKCalendar,
         otherPersonName: String
-    ) -> SyncAction {
+    )
+        -> SyncAction {
         let titleTemplate = calendarPair.titleTemplate
         let syncedTitle = titleTemplate.replacingOccurrences(
             of: "{{otherPerson}}",
@@ -132,7 +174,8 @@ class SyncManager {
         sourceCalendar: EKCalendar,
         otherPersonName: String,
         syncedTitle: String
-    ) -> SyncAction {
+    )
+        -> SyncAction {
         // Check if this event already has a synced counterpart
         if let existingEvent = EventMetadata.findSyncedEvent(
             sourceID: sourceEvent.eventIdentifier,
@@ -204,7 +247,8 @@ class SyncManager {
         sourceCalendar: EKCalendar,
         otherPersonName: String,
         syncedTitle: String
-    ) -> SyncAction {
+    )
+        -> SyncAction {
         // For recurring events, we sync the entire series
         if let existingEvent = EventMetadata.findSyncedEvent(
             sourceID: sourceEvent.eventIdentifier,
@@ -220,7 +264,8 @@ class SyncManager {
                 if dryRun {
                     Logger.info(
                         "📝 Would update recurring series: '\(syncedTitle)' "
-                            + "starting \(DateHelper.formatDate(sourceEvent.startDate))")
+                            + "starting \(DateHelper.formatDate(sourceEvent.startDate))"
+                    )
                     return .updated
                 } else {
                     if updateRecurringEvent(
@@ -232,7 +277,8 @@ class SyncManager {
                     ) {
                         Logger.info(
                             "📝 Updated recurring series: '\(syncedTitle)' "
-                                + "starting \(DateHelper.formatDate(sourceEvent.startDate))")
+                                + "starting \(DateHelper.formatDate(sourceEvent.startDate))"
+                        )
                         return .updated
                     } else {
                         return .error("Failed to update recurring series: \(syncedTitle)")
@@ -249,7 +295,8 @@ class SyncManager {
             if dryRun {
                 Logger.info(
                     "➕ Would create recurring series: '\(syncedTitle)' "
-                        + "starting \(DateHelper.formatDate(sourceEvent.startDate))")
+                        + "starting \(DateHelper.formatDate(sourceEvent.startDate))"
+                )
                 return .created
             } else {
                 if createNewRecurringEvent(
@@ -261,7 +308,8 @@ class SyncManager {
                 ) {
                     Logger.info(
                         "✅ Created recurring series: '\(syncedTitle)' "
-                            + "starting \(DateHelper.formatDate(sourceEvent.startDate))")
+                            + "starting \(DateHelper.formatDate(sourceEvent.startDate))"
+                    )
                     return .created
                 } else {
                     return .error("Failed to create recurring series: \(syncedTitle)")
@@ -274,7 +322,8 @@ class SyncManager {
         _ existingEvent: EKEvent,
         sourceEvent: EKEvent,
         expectedTitle: String
-    ) -> Bool {
+    )
+        -> Bool {
         // Check if title matches expected format
         if existingEvent.title != expectedTitle {
             return true
@@ -282,8 +331,7 @@ class SyncManager {
 
         // Check if times have changed
         if existingEvent.startDate != sourceEvent.startDate
-            || existingEvent.endDate != sourceEvent.endDate
-        {
+            || existingEvent.endDate != sourceEvent.endDate {
             return true
         }
 
@@ -296,7 +344,8 @@ class SyncManager {
         in calendar: EKCalendar,
         otherPersonName _: String,
         sourceCalendar _: EKCalendar
-    ) -> Bool {
+    )
+        -> Bool {
         let event = EKEvent(eventStore: calendarManager.eventStore)
         event.title = title
         event.startDate = sourceEvent.startDate
@@ -324,7 +373,8 @@ class SyncManager {
         in calendar: EKCalendar,
         otherPersonName _: String,
         sourceCalendar _: EKCalendar
-    ) -> Bool {
+    )
+        -> Bool {
         let event = EKEvent(eventStore: calendarManager.eventStore)
         event.title = title
         event.startDate = sourceEvent.startDate
@@ -357,7 +407,8 @@ class SyncManager {
         title: String,
         otherPersonName _: String,
         sourceCalendar _: EKCalendar
-    ) -> Bool {
+    )
+        -> Bool {
         existingEvent.title = title
         existingEvent.startDate = sourceEvent.startDate
         existingEvent.endDate = sourceEvent.endDate
@@ -388,7 +439,8 @@ class SyncManager {
         title: String,
         otherPersonName _: String,
         sourceCalendar _: EKCalendar
-    ) -> Bool {
+    )
+        -> Bool {
         existingEvent.title = title
         existingEvent.startDate = sourceEvent.startDate
         existingEvent.endDate = sourceEvent.endDate
@@ -414,12 +466,14 @@ class SyncManager {
         analyzer: MeetingAnalyzer,
         sourceCalendar _: EKCalendar,
         calendarOwner: String
-    ) -> Int {
+    )
+        -> Int {
         let validSourceEventIds = Set(
             validSourceEvents.compactMap { event in
                 analyzer.isOneOnOneMeeting(event, calendarOwner: calendarOwner)
                     ? event.eventIdentifier : nil
-            })
+            }
+        )
 
         // Get all synced events in the destination calendar
         let startDate =
@@ -458,35 +512,6 @@ class SyncManager {
         return deletedCount
     }
 
-    // Print detailed sync summary
-    func printSummary(_ result: SyncResult) {
-        Logger.info("\n\t" + "=" * 50)
-        Logger.info(dryRun ? "🔍 DRY RUN SUMMARY" : "📊 SYNC SUMMARY")
-        Logger.info("=" * 50)
-
-        if dryRun {
-            Logger.info("📋 Changes that would be made:")
-        } else {
-            Logger.info("📋 Changes made:")
-        }
-
-        Logger.info("  ➕ Created: \(result.created)")
-        Logger.info("  📝 Updated: \(result.updated)")
-        Logger.info("  🗑️  Deleted: \(result.deleted)")
-        Logger.info("  ⏭️  Skipped: \(result.skipped)")
-
-        if !result.errors.isEmpty {
-            Logger.error("  ❌ Errors: \(result.errors.count)")
-            for error in result.errors {
-                Logger.error("     • \(error)")
-            }
-        }
-
-        let totalProcessed = result.created + result.updated + result.deleted + result.skipped
-        Logger.info("\n\t📈 Total events processed: \(totalProcessed)")
-
-        Logger.info("=" * 50)
-    }
 }
 
 // Helper extension for string repetition

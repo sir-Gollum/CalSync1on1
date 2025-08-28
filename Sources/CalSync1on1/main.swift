@@ -78,7 +78,8 @@ func main() {
     Logger.info("\n\t🔐 Checking calendar permissions...")
     guard calendarManager.requestAccess() else {
         Logger.error(
-            "Calendar access denied. Check System Preferences > Privacy & Security > Calendars")
+            "Calendar access denied. Check System Preferences > Privacy & Security > Calendars"
+        )
         exit(1)
     }
     Logger.info("✅ Calendar access granted")
@@ -176,7 +177,8 @@ func main() {
     }
 
     Logger.info(
-        args.dryRun ? "\n\t💡 Run without --dry-run to apply changes" : "\n\t🎉 Sync completed!")
+        args.dryRun ? "\n\t💡 Run without --dry-run to apply changes" : "\n\t🎉 Sync completed!"
+    )
 }
 
 main()

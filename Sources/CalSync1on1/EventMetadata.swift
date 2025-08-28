@@ -6,7 +6,12 @@ struct SyncMetadata: Codable {
 }
 
 class EventMetadata {
+
+    // MARK: - Static Properties
+
     private static let metadataKey = "[CalSync1on1-Metadata]"
+
+    // MARK: - Static Functions
 
     // Add sync metadata to an event's notes
     static func addSyncMetadata(_ event: EKEvent, SourceEventId: String) {
@@ -43,7 +48,8 @@ class EventMetadata {
         let metadataText = String(notes[metadataStart...])
 
         let jsonString = metadataText.trimmingCharacters(
-            in: .whitespacesAndNewlines)
+            in: .whitespacesAndNewlines
+        )
 
         guard let jsonData = jsonString.data(using: .utf8),
               let metadata = try? JSONDecoder().decode(SyncMetadata.self, from: jsonData)
@@ -57,8 +63,7 @@ class EventMetadata {
 
     // Find a synced event by source ID in a calendar
     static func findSyncedEvent(sourceID: String, in calendar: EKCalendar, eventStore: EKEventStore)
-        -> EKEvent?
-    {
+        -> EKEvent? {
         // Get events from the past week to next month to ensure we find the event
         let startDate =
             Calendar.current.date(byAdding: .weekOfYear, value: -1, to: Date()) ?? Date()
@@ -93,7 +98,8 @@ class EventMetadata {
         let beforeMetadata = String(notes[..<metadataStart])
 
         let cleanedNotes = beforeMetadata.trimmingCharacters(
-            in: .whitespacesAndNewlines)
+            in: .whitespacesAndNewlines
+        )
         event.notes = cleanedNotes.isEmpty ? nil : cleanedNotes
     }
 

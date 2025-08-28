@@ -4,7 +4,12 @@ import XCTest
 @testable import CalSync1on1
 
 final class ConfigurationLoadingTests: XCTestCase {
+
+    // MARK: - Properties
+
     private var tempConfigPath: String!
+
+    // MARK: - Overridden Functions
 
     override func setUp() {
         super.setUp()
@@ -20,6 +25,8 @@ final class ConfigurationLoadingTests: XCTestCase {
         }
         super.tearDown()
     }
+
+    // MARK: - Functions
 
     func testConfigurationLoadingFromYAMLFile() {
         let yamlContent = """
@@ -51,7 +58,8 @@ final class ConfigurationLoadingTests: XCTestCase {
         XCTAssertNoThrow(
             try yamlContent.write(
                 to: URL(fileURLWithPath: tempConfigPath), atomically: true, encoding: .utf8
-            ))
+            )
+        )
 
         // Load the configuration
         let config = Configuration.load(from: tempConfigPath)
@@ -108,7 +116,8 @@ final class ConfigurationLoadingTests: XCTestCase {
         XCTAssertNoThrow(
             try invalidYaml.write(
                 to: URL(fileURLWithPath: tempConfigPath), atomically: true, encoding: .utf8
-            ))
+            )
+        )
 
         // Should return default configuration when YAML is invalid
         let config = Configuration.load(from: tempConfigPath)
@@ -143,7 +152,8 @@ final class ConfigurationLoadingTests: XCTestCase {
         XCTAssertNoThrow(
             try minimalYaml.write(
                 to: URL(fileURLWithPath: tempConfigPath), atomically: true, encoding: .utf8
-            ))
+            )
+        )
 
         let config = Configuration.load(from: tempConfigPath)
 
@@ -194,7 +204,8 @@ final class ConfigurationLoadingTests: XCTestCase {
         XCTAssertNoThrow(
             try complexFiltersYaml.write(
                 to: URL(fileURLWithPath: tempConfigPath), atomically: true, encoding: .utf8
-            ))
+            )
+        )
 
         let config = Configuration.load(from: tempConfigPath)
 
@@ -300,7 +311,8 @@ final class ConfigurationLoadingTests: XCTestCase {
         XCTAssertNoThrow(
             try emptyKeywordsYaml.write(
                 to: URL(fileURLWithPath: tempConfigPath), atomically: true, encoding: .utf8
-            ))
+            )
+        )
 
         let config = Configuration.load(from: tempConfigPath)
 
@@ -334,7 +346,8 @@ final class ConfigurationLoadingTests: XCTestCase {
         XCTAssertNoThrow(
             try nullAccountsYaml.write(
                 to: URL(fileURLWithPath: tempConfigPath), atomically: true, encoding: .utf8
-            ))
+            )
+        )
 
         let config = Configuration.load(from: tempConfigPath)
 
@@ -368,7 +381,8 @@ final class ConfigurationLoadingTests: XCTestCase {
         XCTAssertNoThrow(
             try testYaml.write(
                 to: URL(fileURLWithPath: tempConfigPath), atomically: true, encoding: .utf8
-            ))
+            )
+        )
 
         let config = Configuration.load(from: tempConfigPath)
         let calendarPair = config.calendarPair

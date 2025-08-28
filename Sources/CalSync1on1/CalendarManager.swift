@@ -8,7 +8,12 @@ struct EventAccessResult {
 }
 
 class CalendarManager {
+
+    // MARK: - Properties
+
     let eventStore = EKEventStore()
+
+    // MARK: - Functions
 
     func requestAccess() -> Bool {
         let semaphore = DispatchSemaphore(value: 0)
@@ -36,8 +41,7 @@ class CalendarManager {
     }
 
     func getEvents(from calendar: EKCalendar, startDate: Date, endDate: Date, debug: Bool)
-        -> [EKEvent]
-    {
+        -> [EKEvent] {
         if debug {
             Logger.debug("     🔍 CalendarManager.getEvents debug:")
             Logger.debug("       Calendar: \(calendar.title) (\(calendar.calendarIdentifier))")

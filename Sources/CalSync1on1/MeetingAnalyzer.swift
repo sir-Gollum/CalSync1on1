@@ -2,6 +2,21 @@ import EventKit
 import Foundation
 
 class MeetingAnalyzer {
+
+    // MARK: - Nested Types
+
+    // MARK: - Recurring Event Support
+
+    struct RecurrenceAnalysis {
+        let isRecurring: Bool
+        let isOneOnOneRecurringSeries: Bool
+        let recurrenceRule: String?
+        let shouldSyncSeries: Bool
+        let exceptions: [String] // Event IDs of exceptions
+    }
+
+    // MARK: - Functions
+
     func isOneOnOneMeeting(_ event: EKEvent, calendarOwner: String) -> Bool {
         isOneOnOneMeeting(event, calendarOwner: calendarOwner, debug: false)
     }
@@ -43,7 +58,8 @@ class MeetingAnalyzer {
                 if emailLower == ownerEmailLower {
                     if debug {
                         Logger.debug(
-                            "         DEBUG: Direct match found: '\(email)' == '\(ownerEmail)'")
+                            "         DEBUG: Direct match found: '\(email)' == '\(ownerEmail)'"
+                        )
                     }
                     return true
                 }
@@ -52,7 +68,8 @@ class MeetingAnalyzer {
                 if ownerEmailLower.contains(emailLower) || emailLower.contains(ownerEmailLower) {
                     if debug {
                         Logger.debug(
-                            "         DEBUG: Contains match found: '\(email)' <-> '\(ownerEmail)'")
+                            "         DEBUG: Contains match found: '\(email)' <-> '\(ownerEmail)'"
+                        )
                     }
                     return true
                 }
@@ -112,16 +129,6 @@ class MeetingAnalyzer {
         return "Unknown"
     }
 
-    // MARK: - Recurring Event Support
-
-    struct RecurrenceAnalysis {
-        let isRecurring: Bool
-        let isOneOnOneRecurringSeries: Bool
-        let recurrenceRule: String?
-        let shouldSyncSeries: Bool
-        let exceptions: [String] // Event IDs of exceptions
-    }
-
     func analyzeRecurringSeries(_ event: EKEvent, calendarOwner: String) -> RecurrenceAnalysis {
         let baseAnalysis = isOneOnOneMeeting(event, calendarOwner: calendarOwner)
 
@@ -135,16 +142,6 @@ class MeetingAnalyzer {
             shouldSyncSeries: baseAnalysis, // Sync recurring 1:1 series
             exceptions: [] // FIXME: Implement exception tracking in future version
         )
-    }
-
-    // MARK: - Private Helper Methods
-
-    private func extractEmailFromParticipant(_ participant: EKParticipant) -> String? {
-        let urlString = participant.url.absoluteString
-        if urlString.hasPrefix("mailto:") {
-            return String(urlString.dropFirst(7)) // Remove "mailto:" prefix
-        }
-        return urlString
     }
 
     func getOwnerEmails(calendarOwner: String) -> [String] {
@@ -161,7 +158,8 @@ class MeetingAnalyzer {
             // Add some common email patterns
             ownerEmails.append("\(calendarOwner.lowercased())@gmail.com")
             ownerEmails.append(
-                "\(calendarOwner.lowercased().replacingOccurrences(of: " ", with: "."))@gmail.com")
+                "\(calendarOwner.lowercased().replacingOccurrences(of: " ", with: "."))@gmail.com"
+            )
         }
 
         return ownerEmails
@@ -258,4 +256,15 @@ class MeetingAnalyzer {
             "Tentative"
         }
     }
+
+    // MARK: - Private Helper Methods
+
+    private func extractEmailFromParticipant(_ participant: EKParticipant) -> String? {
+        let urlString = participant.url.absoluteString
+        if urlString.hasPrefix("mailto:") {
+            return String(urlString.dropFirst(7)) // Remove "mailto:" prefix
+        }
+        return urlString
+    }
+
 }

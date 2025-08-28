@@ -3,11 +3,16 @@ import Yams
 
 // Command line arguments structure
 struct CommandLineArgs {
+
+    // MARK: - Properties
+
     let configPath: String?
     let dryRun: Bool
     let verbose: Bool
     let help: Bool
     let version: Bool
+
+    // MARK: - Static Functions
 
     static func parse() -> CommandLineArgs {
         let args = CommandLine.arguments
@@ -32,11 +37,8 @@ struct CommandLineArgs {
 }
 
 struct Configuration: Codable {
-    let version: String
-    let calendarPair: CalendarPair
-    let syncWindow: SyncWindow
-    let filters: Filters
-    let logging: Logging
+
+    // MARK: - Nested Types
 
     enum CodingKeys: String, CodingKey {
         case version
@@ -47,11 +49,8 @@ struct Configuration: Codable {
     }
 
     struct CalendarPair: Codable {
-        let name: String
-        let source: CalendarInfo
-        let destination: CalendarInfo
-        let titleTemplate: String
-        let ownerEmail: String?
+
+        // MARK: - Nested Types
 
         enum CodingKeys: String, CodingKey {
             case name
@@ -65,37 +64,66 @@ struct Configuration: Codable {
             let account: String?
             let calendar: String
         }
+
+        // MARK: - Properties
+
+        let name: String
+        let source: CalendarInfo
+        let destination: CalendarInfo
+        let titleTemplate: String
+        let ownerEmail: String?
+
     }
 
     struct SyncWindow: Codable {
-        let weeks: Int
-        let startOffset: Int
+
+        // MARK: - Nested Types
 
         enum CodingKeys: String, CodingKey {
             case weeks
             case startOffset = "start_offset"
         }
+
+        // MARK: - Properties
+
+        let weeks: Int
+        let startOffset: Int
+
     }
 
     struct Filters: Codable {
-        let excludeAllDay: Bool
-        let excludeKeywords: [String]
+
+        // MARK: - Nested Types
 
         enum CodingKeys: String, CodingKey {
             case excludeAllDay = "exclude_all_day"
             case excludeKeywords = "exclude_keywords"
         }
+
+        // MARK: - Properties
+
+        let excludeAllDay: Bool
+        let excludeKeywords: [String]
+
     }
 
     struct Logging: Codable {
-        let level: String
-        let coloredOutput: Bool
+
+        // MARK: - Nested Types
 
         enum CodingKeys: String, CodingKey {
             case level
             case coloredOutput = "colored_output" // TODO: not implemented
         }
+
+        // MARK: - Properties
+
+        let level: String
+        let coloredOutput: Bool
+
     }
+
+    // MARK: - Static Properties
 
     // Default configuration
     static let `default` = Configuration(
@@ -111,6 +139,16 @@ struct Configuration: Codable {
         filters: Filters(excludeAllDay: true, excludeKeywords: ["standup", "all-hands"]),
         logging: Logging(level: "info", coloredOutput: true)
     )
+
+    // MARK: - Properties
+
+    let version: String
+    let calendarPair: CalendarPair
+    let syncWindow: SyncWindow
+    let filters: Filters
+    let logging: Logging
+
+    // MARK: - Static Functions
 
     // Load configuration from file or use default
     static func load(from path: String? = nil) -> Configuration {
@@ -153,6 +191,13 @@ struct Configuration: Codable {
         }
     }
 
+    private static func defaultConfigPath() -> String {
+        let homeDir = FileManager.default.homeDirectoryForCurrentUser
+        return homeDir.appendingPathComponent(".config/calsync1on1/config.yaml").path
+    }
+
+    // MARK: - Functions
+
     // Save configuration to file
     func save(to path: String? = nil) throws {
         let configPath = path ?? Configuration.defaultConfigPath()
@@ -169,8 +214,4 @@ struct Configuration: Codable {
         )
     }
 
-    private static func defaultConfigPath() -> String {
-        let homeDir = FileManager.default.homeDirectoryForCurrentUser
-        return homeDir.appendingPathComponent(".config/calsync1on1/config.yaml").path
-    }
 }

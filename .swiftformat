@@ -1,0 +1,61 @@
+--exclude .build,.swiftpm
+
+--indent 4
+--indentcase false
+--trimwhitespace always
+--insertlines true
+--removelines true
+--wraparguments before-first
+--wrapparameters before-first
+--wrapcollections before-first
+--closingparen balanced
+--wrapreturntype if-multiline
+--wraptypealiases before-first
+
+# Rules to enable
+--enable sortImports
+--enable duplicateImports
+--enable unusedArguments
+--enable hoistPatternLet
+--enable redundantSelf
+--enable strongifiedSelf
+--enable redundantReturn
+--enable redundantParens
+--enable redundantGet
+--enable redundantInit
+--enable redundantVoidReturnType
+--enable redundantNilInit
+--enable redundantLet
+--enable redundantPattern
+--enable redundantRawValues
+--enable redundantObjc
+--enable redundantBackticks
+--enable semicolons
+--enable trailingClosures
+--enable preferKeyPath
+--enable organizeDeclarations
+
+# Rules to disable
+--disable wrapMultilineStatementBraces
+--disable blankLinesAtStartOfScope
+--disable blankLinesAtEndOfScope
+
+# Specific rule configurations
+--self remove
+--importgrouping testable-bottom
+--typeattributes prev-line
+--varattributes prev-line
+--funcattributes prev-line
+--markextensions always
+--marktypes if-not-empty
+--categorymark "MARK: - %c"
+--markCategories true
+--ifdef no-indent
+--redundanttype inferred
+--nevertrailing closures,subscripts
+--organizetypes class,enum,struct
+--typeblanklines remove
+--organization-mode type
+
+# Line length
+--maxwidth 120

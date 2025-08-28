@@ -1,19 +1,30 @@
 import Foundation
 
 class Logger {
-    private let isVerbose: Bool
+
+    // MARK: - Static Properties
 
     // Shared instance for static methods
     static var shared = Logger()
 
-    init(verbose: Bool = false) {
-        isVerbose = verbose
-    }
+    // MARK: - Static Computed Properties
 
     // Static properties
     static var isVerbose: Bool {
         shared.isVerbose
     }
+
+    // MARK: - Properties
+
+    private let isVerbose: Bool
+
+    // MARK: - Lifecycle
+
+    init(verbose: Bool = false) {
+        isVerbose = verbose
+    }
+
+    // MARK: - Static Functions
 
     // Static methods that delegate to shared instance
     static func info(_ message: String) {
@@ -32,6 +43,8 @@ class Logger {
     static func configure(verbose: Bool) {
         shared = Logger(verbose: verbose)
     }
+
+    // MARK: - Functions
 
     // Instance methods
     func info(_ message: String) {

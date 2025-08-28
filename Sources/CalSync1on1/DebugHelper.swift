@@ -2,11 +2,37 @@ import EventKit
 import Foundation
 
 class DebugHelper {
+
+    // MARK: - Properties
+
     private let analyzer: MeetingAnalyzer
+
+    // MARK: - Lifecycle
 
     init(analyzer: MeetingAnalyzer) {
         self.analyzer = analyzer
     }
+
+    // MARK: - Static Functions
+
+    static func calendarTypeDescription(_ type: EKCalendarType) -> String {
+        switch type {
+        case .local:
+            return "Local"
+        case .calDAV:
+            return "CalDAV"
+        case .exchange:
+            return "Exchange"
+        case .subscription:
+            return "Subscription"
+        case .birthday:
+            return "Birthday"
+        @unknown default:
+            return "Unknown"
+        }
+    }
+
+    // MARK: - Functions
 
     func printCalendarAccessDetails() {
         if !Logger.isVerbose { return }
@@ -30,7 +56,8 @@ class DebugHelper {
             let calendarType = DebugHelper.calendarTypeDescription(calendar.type)
             let allowsModification = calendar.allowsContentModifications ? "writable" : "read-only"
             Logger.debug(
-                "   • \(calendar.title) (\(accountInfo)) - \(calendarType), \(allowsModification)")
+                "   • \(calendar.title) (\(accountInfo)) - \(calendarType), \(allowsModification)"
+            )
         }
     }
 
@@ -60,7 +87,8 @@ class DebugHelper {
 
         for (index, event) in events.enumerated() {
             Logger.debug(
-                "\n\t   ===== EVENT \(index + 1): \(event.title ?? "Untitled") =====")
+                "\n\t   ===== EVENT \(index + 1): \(event.title ?? "Untitled") ====="
+            )
             Logger.debug(
                 "   📅 \(DateHelper.formatDate(event.startDate)) - \(DateHelper.formatDate(event.endDate))"
             )
@@ -79,7 +107,8 @@ class DebugHelper {
                         of: "mailto:", with: ""
                     )
                     Logger.debug(
-                        "     [\(i + 1)] \(analyzer.getAttendeeDisplayName(attendee)) <\(email)>")
+                        "     [\(i + 1)] \(analyzer.getAttendeeDisplayName(attendee)) <\(email)>"
+                    )
                 }
 
                 if attendees.count > maxAttendeesToShow {
@@ -123,7 +152,8 @@ class DebugHelper {
         Logger.debug("   All-day: \(stats.allDay) (\(stats.allDayPercent)%)")
         Logger.debug("   With attendees: \(stats.withAttendees) (\(stats.withAttendeesPercent)%)")
         Logger.debug(
-            "   Exactly 2 attendees: \(stats.twoAttendees) (\(stats.twoAttendeesPercent)%)")
+            "   Exactly 2 attendees: \(stats.twoAttendees) (\(stats.twoAttendeesPercent)%)"
+        )
         Logger.debug("   Recurring: \(stats.recurring) (\(stats.recurringPercent)%)")
     }
 
@@ -187,26 +217,10 @@ class DebugHelper {
             Logger.debug("   \(filteredEvents) events passed filters but none detected as 1:1")
             if !calendarOwner.contains("@") {
                 Logger.debug(
-                    "   Owner '\(calendarOwner)' doesn't look like email - this may cause issues")
+                    "   Owner '\(calendarOwner)' doesn't look like email - this may cause issues"
+                )
                 Logger.debug("   Consider setting 'owner_email' in configuration")
             }
-        }
-    }
-
-    static func calendarTypeDescription(_ type: EKCalendarType) -> String {
-        switch type {
-        case .local:
-            return "Local"
-        case .calDAV:
-            return "CalDAV"
-        case .exchange:
-            return "Exchange"
-        case .subscription:
-            return "Subscription"
-        case .birthday:
-            return "Birthday"
-        @unknown default:
-            return "Unknown"
         }
     }
 
@@ -248,7 +262,8 @@ class DebugHelper {
         if !calendarOwner.contains("@") {
             ownerEmails.append("\(calendarOwner.lowercased())@gmail.com")
             ownerEmails.append(
-                "\(calendarOwner.lowercased().replacingOccurrences(of: " ", with: "."))@gmail.com")
+                "\(calendarOwner.lowercased().replacingOccurrences(of: " ", with: "."))@gmail.com"
+            )
         }
 
         return ownerEmails

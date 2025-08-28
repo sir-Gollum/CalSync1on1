@@ -5,7 +5,8 @@ enum EventFilter {
     static func applyFilters(
         _ events: [EKEvent],
         configuration: Configuration
-    ) -> [EKEvent] {
+    )
+        -> [EKEvent] {
         events.filter { event in
             let (passes, reasons) = checkFilters(event, configuration: configuration)
 
@@ -22,7 +23,8 @@ enum EventFilter {
     static func checkFilters(
         _ event: EKEvent,
         configuration: Configuration
-    ) -> (passes: Bool, reasons: [String]) {
+    )
+        -> (passes: Bool, reasons: [String]) {
         var reasons: [String] = []
 
         // All-day filter
@@ -33,8 +35,7 @@ enum EventFilter {
         // Keyword filters
         if let title = event.title?.lowercased() {
             for keyword in configuration.filters.excludeKeywords
-                where title.contains(keyword.lowercased())
-            {
+                where title.contains(keyword.lowercased()) {
                 reasons.append("Contains excluded keyword '\(keyword)'")
             }
         }

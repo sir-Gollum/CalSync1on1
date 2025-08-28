@@ -2,12 +2,35 @@ import EventKit
 import Foundation
 
 class DateHelper {
+
+    // MARK: - Properties
+
     private let calendar = Calendar.current
     private let configuration: Configuration?
+
+    // MARK: - Lifecycle
 
     init(configuration: Configuration? = nil) {
         self.configuration = configuration
     }
+
+    // MARK: - Static Functions
+
+    static func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .short
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
+    }
+
+    static func formatDateLong(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .full
+        formatter.timeStyle = .none
+        return formatter.string(from: date)
+    }
+
+    // MARK: - Functions
 
     func getCurrentWeekStart() -> Date {
         let now = Date()
@@ -37,17 +60,4 @@ class DateHelper {
         return "\(formatter.string(from: start)) - \(formatter.string(from: end))"
     }
 
-    static func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .short
-        formatter.timeStyle = .short
-        return formatter.string(from: date)
-    }
-
-    static func formatDateLong(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .full
-        formatter.timeStyle = .none
-        return formatter.string(from: date)
-    }
 }

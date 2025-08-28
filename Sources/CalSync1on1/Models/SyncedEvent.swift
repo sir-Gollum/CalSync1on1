@@ -10,6 +10,9 @@ protocol EventProtocol {
 extension EKEvent: EventProtocol {}
 
 struct SyncedEvent {
+
+    // MARK: - Properties
+
     let sourceEventId: String
     let destinationEventId: String?
     let title: String
@@ -17,6 +20,8 @@ struct SyncedEvent {
     let endDate: Date
     let otherPersonName: String
     let lastSyncDate: Date
+
+    // MARK: - Lifecycle
 
     init(sourceEvent: EKEvent, otherPersonName: String) {
         sourceEventId = sourceEvent.eventIdentifier
