@@ -4,7 +4,7 @@ A Swift command-line tool that automatically synchronizes 1:1 meetings from a wo
 
 ## Overview
 
-This tool helps you share your 1:1 meeting schedule with family members without exposing sensitive work details. It provides intelligent event linking, dry-run capabilities, YAML configuration, and comprehensive error handling.
+This tool helps you share your 1:1 meeting schedule with family members without exposing sensitive work details. It provides intelligent event linking, dry-run capabilities, YAML configuration, and comprehensive debugging features.
 
 ## ✨ Features
 
@@ -20,7 +20,7 @@ This tool helps you share your 1:1 meeting schedule with family members without 
 - **YAML Configuration**: Flexible configuration with single calendar pair setup
 - **Dry-Run Mode**: Preview changes before applying them
 - **Event Filtering**: Skip all-day events, exclude keywords, filter by privacy
-- **Verbose Logging**: Detailed operation logging with colored output
+- **Comprehensive Logging**: Detailed operation logging with configurable verbosity
 - **Error Recovery**: Comprehensive error handling with helpful messages
 - **Command-Line Interface**: Full CLI with help, version, and configuration options
 
@@ -32,8 +32,8 @@ This tool helps you share your 1:1 meeting schedule with family members without 
 
 ## 🔧 Requirements
 
-- **macOS 13.0+** (Sonoma or later recommended)
-- **Xcode or Swift command-line tools**
+- **macOS 13.0+** (Ventura or later)
+- **Swift 5.8+** and Xcode command-line tools
 - **Calendar app** with configured work and personal calendars
 - **Calendar permissions** (will prompt on first run)
 
@@ -55,6 +55,8 @@ make install
 
 3. **Set up configuration:**
 ```bash
+make setup
+# or directly:
 ./setup-config.sh
 ```
 
@@ -81,6 +83,8 @@ mkdir -p ~/.config/calsync1on1
 
 Run the interactive setup script:
 ```bash
+make setup
+# or
 ./setup-config.sh
 ```
 
@@ -96,13 +100,14 @@ version: "1.0"
 calendar_pair:
   name: "Work to Personal"
   source:
-    account: null              # Optional: specify account
-    calendar: "Calendar"       # Your work calendar name
+    account: "work@company.com"      # Optional: specify account
+    calendar: "Work Calendar"        # Your work calendar name (exact match required)
   destination:
-    account: null              # Optional: specify account
-    calendar: "Personal"       # Your personal calendar name
+    account: "personal@gmail.com"    # Optional: specify account
+    calendar: "Personal Calendar"    # Your personal calendar name (exact match required)
   title_template: "1:1 with {{otherPerson}}"
-  owner_email: "john.doe@company.com"  # Optional: your email for better 1:1 detection
+  # CRITICAL: Set your actual email address for accurate 1:1 detection
+  owner_email: "john.doe@company.com"
 
 sync_window:
   weeks: 2                      # Sync current + next week
@@ -134,7 +139,7 @@ calsync1on1
 # Use custom configuration
 calsync1on1 --config /path/to/config.yaml
 
-# Enable verbose logging
+# Enable verbose debugging (shows all event details)
 calsync1on1 --verbose --dry-run
 
 # Show help
@@ -150,159 +155,127 @@ calsync1on1 --version
 |--------|-------------|
 | `--config PATH` | Path to configuration file |
 | `--dry-run` | Preview changes without applying |
-| `--verbose` | Enable detailed logging |
+| `--verbose` | Enable comprehensive debugging output |
 | `--help`, `-h` | Show help message |
 | `--version` | Show version information |
 
 ## 📊 Example Output
 
-### Dry-Run Mode
+### Verbose Debug Mode
 ```
-📅 CalSync1on1 - Syncing 1:1 meetings from work to personal calendar
-🔍 DRY RUN MODE - No changes will be made
+📅 CalSync1on1 - Syncing 1:1 meetings
+🔍 DRY RUN MODE
 
-🔐 Checking calendar permissions...
+	🔐 Checking calendar permissions...
 ✅ Calendar access granted
 
-📋 All available calendars:
+	🔍 Finding calendars...
+📋 Available calendars:
    • Work Calendar (Exchange) - CalDAV, writable
    • Personal Calendar (iCloud) - CalDAV, writable
    • Holidays (iCloud) - Subscription, read-only
    • Birthdays (Local) - Birthday, read-only
 
-📋 Calendar Configuration:
-   Source: Work Calendar
-   Destination: Personal Calendar
+✅ Source: Work Calendar
+✅ Destination: Personal Calendar
+📅 Sync window: Monday, December 18, 2023 to Monday, January 8, 2024
 
-🔍 Finding calendars...
-✅ Found source calendar: Work Calendar (Exchange)
-✅ Found destination calendar: Personal Calendar (iCloud)
+	📥 Fetching events...
+Found 25 total events
 
-📅 Sync window: 2 weeks
-   From: Monday, December 18, 2023
-   To: Monday, January 1, 2024
-
-📥 Fetching events from source calendar...
-📊 Found 25 total events in source calendar
-
-🔍 Detailed event analysis:
+🔍 Comprehensive Event Analysis:
    • Weekly Team Standup - 3 attendees
-     Attendees: John Doe <john.doe@company.com>, Jane Smith <jane.smith@company.com>, Bob Wilson <bob@company.com>
-     Time: 12/18/23, 9:00 AM
+     └─ Attendees: john.doe@company.com, jane.smith@company.com, bob@company.com
+     └─ Time: 12/18/23, 9:00 AM
+     └─ Not 1:1: More than 2 attendees
 
    • 1:1 with Sarah - 2 attendees
-     Attendees: John Doe <john.doe@company.com>, Sarah Johnson <sarah@company.com>
-     Time: 12/19/23, 2:00 PM
+     └─ Attendees: john.doe@company.com, sarah@company.com
+     └─ Time: 12/19/23, 2:00 PM
+     └─ ✅ Detected as 1:1 meeting
 
-📊 15 events after applying filters
+📊 8 events left after filtering
+📊 Found 3 1:1 meetings
 
-🔍 Analyzing events for 1:1 meetings...
-   Using calendar owner identifier: 'john.doe@company.com'
-📊 Found 8 1:1 meetings
-
-   1:1 meetings found:
-   • 1:1 with Sarah Johnson at 12/19/23, 2:00 PM
-   • 1:1 with Mike Chen at 12/21/23, 3:00 PM (recurring)
-   • 1:1 with Lisa Wang at 12/22/23, 10:00 AM
-
-🔄 Starting synchronization...
+	🔄 Synchronizing...
 ➕ Would create: '1:1 with Sarah Johnson' at 12/19/23, 2:00 PM
-➕ Would create recurring series: '1:1 with Mike Chen' starting 12/21/23, 3:00 PM
-📝 Would update: '1:1 with Lisa Wang' at 12/22/23, 10:00 AM
+📝 Would update: '1:1 with Mike Chen' at 12/21/23, 3:00 PM
 🗑️  Would delete orphaned: '1:1 with Former Colleague'
 
 ==================================================
 🔍 DRY RUN SUMMARY
 ==================================================
 📋 Changes that would be made:
-  ➕ Created: 3
-  📝 Updated: 2
+  ➕ Created: 2
+  📝 Updated: 1
   🗑️  Deleted: 1
-  ⏭️  Skipped: 2
+  ⏭️  Skipped: 0
 
-📈 Total events processed: 8
+📈 Total events processed: 3
 
-💡 Run without --dry-run to apply these changes
+💡 Run without --dry-run to apply changes
 ==================================================
 ```
 
 ### Normal Sync Output
 ```
-📅 CalSync1on1 - Syncing 1:1 meetings from work to personal calendar
+📅 CalSync1on1 - Syncing 1:1 meetings
 
 ✅ Calendar access granted
-✅ Found source calendar: Calendar (Exchange)
-✅ Found destination calendar: Personal (iCloud)
+✅ Source: Work Calendar
+✅ Destination: Personal Calendar
+📊 Found 3 1:1 meetings
 
-📊 Found 8 1:1 meetings
-
-🔄 Starting synchronization...
-➕ Would create: '1:1 with John Smith' at 12/19/23, 2:00 PM
-➕ Would create recurring series: '1:1 with Sarah Johnson' starting 12/20/23, 10:00 AM
-📝 Would update: '1:1 with Mike Chen' at 12/21/23, 3:00 PM
-🗑️  Would delete orphaned: '1:1 with Former Colleague'
+	🔄 Synchronizing...
+➕ Created: '1:1 with Sarah Johnson' at 12/19/23, 2:00 PM
+📝 Updated: '1:1 with Mike Chen' at 12/21/23, 3:00 PM
 
 ==================================================
 📊 SYNC SUMMARY
 ==================================================
 📋 Changes made:
-  ➕ Created: 3
-  📝 Updated: 2
-  🗑️  Deleted: 1
-  ⏭️  Skipped: 2
+  ➕ Created: 1
+  📝 Updated: 1
+  🗑️  Deleted: 0
+  ⏭️  Skipped: 1
 
-📈 Total events processed: 8
+📈 Total events processed: 3
 ==================================================
 
-🎉 Synchronization completed successfully!
+	🎉 Sync completed!
 ```
 
 ## 🔍 How It Works
 
-1. **Permission Check**: Requests access to your calendars
+1. **Permission Check**: Requests access to your calendars via EventKit
 2. **Configuration Loading**: Loads settings from YAML config file
-3. **Calendar Discovery**: Finds source and destination calendars by name
+3. **Calendar Discovery**: Finds source and destination calendars by exact name match
 4. **Date Range Calculation**: Determines sync window based on configuration
-6. **Event Fetching**: Retrieves events from source calendar in date range
-7. **Filtering**: Applies configured filters (all-day, keywords, privacy)
-8. **1:1 Analysis**: Identifies meetings with exactly 2 attendees including owner
-9. **Recurring Event Detection**: Analyzes recurring 1:1 meeting series
-10. **Smart Synchronization**:
-    - Creates new synced events with metadata
-    - Handles recurring event series properly
-    - Updates existing events when source changes
-    - Deletes orphaned events when source no longer exists
-    - Skips unchanged events to avoid unnecessary updates
-11. **Summary Report**: Shows detailed results of sync operation
+5. **Event Fetching**: Retrieves events from source calendar in date range
+6. **Event Filtering**: Applies configured filters (all-day, keywords, privacy)
+7. **1:1 Analysis**: Identifies meetings with exactly 2 attendees including owner
+8. **Smart Synchronization**:
+   - Creates new synced events with embedded metadata for tracking
+   - Updates existing events when source changes (using metadata linking)
+   - Deletes orphaned events when source no longer exists or changes
+   - Skips unchanged events to avoid unnecessary calendar updates
+9. **Summary Report**: Shows detailed results of sync operation
 
 ## 🎛️ Advanced Configuration
 
-### Custom Title Templates & Owner Email
+### Critical: Owner Email Configuration
 ```yaml
 calendar_pair:
-  name: "Work to Personal"
-  source:
-    calendar: "Work Calendar"
-  destination:
-    calendar: "Personal"
-  title_template: "Meeting with {{otherPerson}}"  # Custom format
-  owner_email: "your.email@company.com"           # For better 1:1 detection
+  # This is CRITICAL for accurate 1:1 detection
+  owner_email: "your.actual.email@company.com"  # Must match your email in meeting attendees
 ```
 
-### Improved 1:1 Meeting Detection
-
-The `owner_email` configuration helps the tool accurately identify which attendee is you:
-
-```yaml
-calendar_pair:
-  owner_email: "john.doe@company.com"  # Your actual email address
-```
-
-**Why this matters:**
+**Why `owner_email` is important:**
 - Calendar source titles don't always match your email address
+- Some calendars show generic names instead of your actual email
 - More accurate matching against meeting attendees
 - Better detection of 1:1 meetings vs. group meetings
-- Fallback: Uses calendar source title if not specified
+- **Run `--verbose` to see what email addresses appear in your events**
 
 ### Advanced Filtering
 ```yaml
@@ -316,43 +289,54 @@ filters:
     - "all-hands"
     - "team meeting"
     - "planning"
+    - "review"
+    - "sync"
+    - "check-in"
+```
+
+### Wider Sync Window for Testing
+```yaml
+sync_window:
+  weeks: 4                    # Look ahead 4 weeks
+  start_offset: -1            # Start from last week (for testing)
 ```
 
 ## 🔧 Development
 
-### Building
+### Building & Testing
 ```bash
+make help           # Show all available commands
+make install-deps   # Install development dependencies (linters, formatters, test tools)
 make build          # Release build
 make debug          # Debug build
+make test           # Run tests
+make lint           # Run code linting
+make format         # Run code formatting
 make clean          # Clean build artifacts
-```
-
-### Testing
-```bash
-make test           # Run all tests
-swift test          # Direct test execution
-swift test --parallel  # Parallel test execution
+make check          # Comprehensive validation
 ```
 
 ### Project Structure
 ```
 CalSync1on1/
-├── Package.swift                    # Swift package manifest
-├── Makefile                        # Build automation
-├── setup-config.sh                 # Configuration setup script
+├── Package.swift                        # Swift package manifest
+├── Makefile                             # Build automation
+├── setup-config.sh                      # Interactive configuration setup
+├── example-config.yaml                  # Example configuration file
 ├── Sources/CalSync1on1/
-│   ├── main.swift                  # CLI entry point
-│   ├── Configuration.swift         # YAML config management
-│   ├── CalendarManager.swift       # EventKit operations
-│   ├── MeetingAnalyzer.swift      # 1:1 meeting detection
-│   ├── SyncManager.swift          # Event synchronization
-│   ├── EventMetadata.swift        # Metadata tracking
-│   ├── DateHelper.swift           # Date utilities
+│   ├── main.swift                       # CLI entry point and main logic
+│   ├── CalendarManager.swift            # EventKit calendar operations
+│   ├── MeetingAnalyzer.swift            # 1:1 meeting detection logic
+│   ├── SyncManager.swift                # Event synchronization engine
+│   ├── EventMetadata.swift              # Metadata tracking for event linking
+│   ├── EventFilter.swift                # Event filtering logic
+│   ├── DateHelper.swift                 # Date range utilities
+│   ├── Logger.swift                     # Logging system with verbosity levels
+│   ├── DebugHelper.swift                # Comprehensive debugging utilities
 │   └── Models/
-│       └── SyncedEvent.swift      # Data models
-├── Tests/CalSync1on1Tests/         # Unit tests
-├── Resources/
-│   └── default-config.yaml        # Default configuration
+│       ├── Configuration.swift          # YAML config management & validation
+│       └── SyncedEvent.swift            # Data models for synced events
+├── Tests/CalSync1on1Tests/              # Comprehensive unit tests
 └── README.md
 ```
 
@@ -361,48 +345,61 @@ CalSync1on1/
 ### Common Issues
 
 **"Calendar access denied"**
-- Grant permission in System Preferences > Privacy & Security > Calendars
+- Grant permission in System Settings > Privacy & Security > Calendars
 - Restart the application after granting permission
 
 **"Could not find calendar named 'X'"**
-- Check calendar names in your Calendar app
-- Run setup script again: `./setup-config.sh`
-- List available calendars: the tool will show them in error messages
+- Calendar names must match EXACTLY (case-sensitive)
+- Run `calsync1on1 --verbose --dry-run` to see all available calendar names
+- Run setup script again: `make setup`
 
-**"No 1:1 meetings found"**
-- Verify your work calendar has meetings with exactly 2 attendees
-- Check that you're included as one of the attendees
-- Configure `owner_email` in your config for better detection
-- Use `--verbose` flag to see detailed analysis including:
-  - All available calendars with their types
-  - Event details with attendee information
-  - Calendar owner identifier being used
-  - Why specific events aren't detected as 1:1
+**"No 1:1 meetings found" - Most Common Issue**
+- **CRITICAL**: Set `owner_email` in your config to your actual email address
+- Run `--verbose` to see all event details and attendee information
+- Look for "events with 2 attendees NOT detected as 1:1" in verbose output
+- Check that you're included as one of the attendees in the meetings
+- Verify your work calendar actually has meetings with exactly 2 people
 
-**Configuration not loading**
-- Verify file exists: `~/.config/calsync1on1/config.yaml`
-- Check YAML syntax with online validator
-- Run setup script to recreate: `./setup-config.sh`
+**Events being filtered out**
+- Set `exclude_all_day: false` if your 1:1s are all-day events
+- Remove or adjust `exclude_keywords` that might match your meetings
+- Use `--verbose` to see exactly why events are filtered
 
-### Debug Mode
+### Debug Mode - Your Best Friend
 
 ```bash
-# Enable maximum verbosity - shows all calendars and detailed event analysis
+# ALWAYS start with this for troubleshooting
 calsync1on1 --verbose --dry-run
-
-# Check configuration loading and calendar detection
-calsync1on1 --config /path/to/config.yaml --verbose --dry-run
-
-# See why events aren't detected as 1:1 meetings
-calsync1on1 --verbose --dry-run | grep -A5 "has 2 attendees but not detected"
 ```
 
-**Verbose mode shows:**
-- All available calendars with account types and permissions
-- Detailed event information including all attendees
-- Calendar owner identifier being used for matching
-- Why events with 2 attendees aren't detected as 1:1
-- Step-by-step analysis of the sync process
+**Verbose mode reveals:**
+- All available calendars with their exact names and types
+- Complete event details including all attendees and organizers
+- Calendar owner identifier being used for 1:1 detection
+- Step-by-step analysis of why events are/aren't detected as 1:1
+- Detailed filter application results
+- Diagnostic recommendations for common issues
+
+### Debugging No 1:1 Meetings Found
+
+1. **Check owner email matching:**
+```bash
+# Look for lines like:
+# "Using owner identifier: 'john.doe@company.com'"
+# "Event has 2 attendees but owner not found in: [attendee1, attendee2]"
+```
+
+2. **Verify calendar names:**
+```bash
+# Look for the "Available calendars:" section
+# Use exact names shown there in your config
+```
+
+3. **Check date range:**
+```bash
+# Widen the sync window temporarily for testing:
+# weeks: 4, start_offset: -1
+```
 
 ## 📚 Automation
 

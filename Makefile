@@ -23,6 +23,30 @@ help:
 	}' $(MAKEFILE_LIST)
 
 
+.PHONY: install-deps
+## Install development dependencies (linters, formatters, test tools)
+install-deps:
+	@echo "Installing development dependencies..."
+	@command -v brew >/dev/null 2>&1 || { echo "❌ Error: Homebrew is required but not installed. Visit https://brew.sh"; exit 1; }
+	@echo "📦 Installing SwiftLint..."
+	@brew list swiftlint >/dev/null 2>&1 || brew install swiftlint
+	@echo "📦 Installing SwiftFormat..."
+	@brew list swiftformat >/dev/null 2>&1 || brew install swiftformat
+	@echo "📦 Installing xcbeautify..."
+	@brew list xcbeautify >/dev/null 2>&1 || brew install xcbeautify
+	@echo ""
+	@echo "🔍 Verifying installations..."
+	@swiftlint version >/dev/null 2>&1 && echo "  ✅ SwiftLint: $$(swiftlint version)" || echo "  ❌ SwiftLint verification failed"
+	@swiftformat --version >/dev/null 2>&1 && echo "  ✅ SwiftFormat: $$(swiftformat --version)" || echo "  ❌ SwiftFormat verification failed"
+	@xcbeautify --version >/dev/null 2>&1 && echo "  ✅ xcbeautify: $$(xcbeautify --version)" || echo "  ❌ xcbeautify verification failed"
+	@echo ""
+	@echo "🎉 Development environment setup complete!"
+	@echo ""
+	@echo "Available commands:"
+	@echo "  • make lint    - Run SwiftLint code analysis"
+	@echo "  • make format  - Format code with SwiftFormat"
+	@echo "  • make test    - Run tests with pretty output"
+
 .PHONY: build
 ## Build the project in release mode
 build:
