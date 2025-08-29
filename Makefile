@@ -97,9 +97,9 @@ install: build
 
 .PHONY: setup
 # Run interactive configuration setup
-setup:
+setup: build
 	@echo "Setting up CalSync1on1 configuration..."
-	@./setup-config.sh
+	@./.build/release/calsync1on1 --setup
 
 .PHONY: clean
 # Comprehensive validation

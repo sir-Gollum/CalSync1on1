@@ -57,7 +57,7 @@ make install
 ```bash
 make setup
 # or directly:
-./setup-config.sh
+calsync1on1 --setup
 ```
 
 ### Manual Setup
@@ -81,14 +81,14 @@ mkdir -p ~/.config/calsync1on1
 
 ### Automatic Configuration Setup
 
-Run the interactive setup script:
+Run the interactive setup command:
 ```bash
 make setup
 # or
-./setup-config.sh
+calsync1on1 --setup
 ```
 
-This will guide you through creating a configuration file with your calendar names, sync preferences, and filtering rules.
+This will guide you through creating a configuration file with your calendar names, sync preferences, and filtering rules. The setup creates a comprehensive configuration file with helpful comments and troubleshooting tips.
 
 ### Manual Configuration
 
@@ -130,6 +130,9 @@ logging:
 ### Basic Commands
 
 ```bash
+# Set up configuration interactively (first time setup)
+calsync1on1 --setup
+
 # Preview changes (recommended first run)
 calsync1on1 --dry-run
 
@@ -153,6 +156,7 @@ calsync1on1 --version
 
 | Option | Description |
 |--------|-------------|
+| `--setup` | Create a default configuration file with helpful comments |
 | `--config PATH` | Path to configuration file |
 | `--dry-run` | Preview changes without applying |
 | `--verbose` | Enable comprehensive debugging output |
@@ -331,11 +335,9 @@ CalSync1on1/
 │   ├── MeetingAnalyzer.swift            # 1:1 meeting detection logic
 │   └── SyncManager.swift                # Event synchronization engine
 ├── Tests/CalSync1on1Tests/              # Comprehensive unit tests
-└── README.md
-├── example-config.yaml                  # Example configuration file
 ├── Makefile                             # Build automation
 ├── Package.swift                        # Swift package manifest
-└── setup-config.sh                      # Interactive configuration setup
+└── README.md
 ```
 
 ## 🚨 Troubleshooting
@@ -349,7 +351,7 @@ CalSync1on1/
 **"Could not find calendar named 'X'"**
 - Calendar names must match EXACTLY (case-sensitive)
 - Run `calsync1on1 --verbose --dry-run` to see all available calendar names
-- Run setup script again: `make setup`
+- Run setup again: `calsync1on1 --setup`
 
 **"No 1:1 meetings found" - Most Common Issue**
 - **CRITICAL**: Set `owner_email` in your config to your actual email address

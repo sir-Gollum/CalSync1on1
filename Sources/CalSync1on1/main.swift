@@ -12,6 +12,7 @@ let HELP_TEXT =
         --config PATH    Path to configuration file (default: ~/.config/calsync1on1/config.yaml)
         --dry-run        Show what changes would be made without applying them
         --verbose        Enable verbose logging with comprehensive event data
+        --setup          Create a default configuration file with helpful comments
         --help, -h       Show this help message
         --version        Show version information
 
@@ -22,6 +23,7 @@ let HELP_TEXT =
 
     CONFIGURATION:
         Configuration is loaded from ~/.config/calsync1on1/config.yaml by default.
+        Use --setup to create a default configuration file with guided prompts.
         Run with --dry-run first to see what changes would be made.
 
     DEBUGGING:
@@ -34,6 +36,7 @@ let HELP_TEXT =
         - Diagnostic recommendations
 
     EXAMPLES:
+        calsync1on1 --setup             # Set up configuration file interactively
         calsync1on1                     # Run with default settings
         calsync1on1 --dry-run           # Preview changes without applying
         calsync1on1 --config my.yaml    # Use custom configuration file
@@ -59,6 +62,16 @@ func main() {
     if args.version {
         print(VERSION_TEXT)
         exit(0)
+    }
+
+    // Handle setup flag
+    if args.setup {
+        Logger.info("📅 CalSync1on1 - Configuration Setup")
+        Logger.info("===================================\n")
+
+        let success = Configuration.writeDefaultConfiguration()
+
+        exit(success ? 0 : 1)
     }
 
     Logger.configure(verbose: args.verbose)
