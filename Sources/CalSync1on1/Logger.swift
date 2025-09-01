@@ -57,6 +57,6 @@ class Logger {
     }
 
     func error(_ message: String) {
-        fputs("[ERROR] \(message)\n", stderr)
+        fputs("\u{001B}[31m[ERROR] \(message)\u{001B}[0m\n", stderr)
     }
 }
