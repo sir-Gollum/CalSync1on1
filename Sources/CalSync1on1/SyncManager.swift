@@ -496,11 +496,15 @@ class SyncManager {
 
             if !validSourceEventIds.contains(metadata.sourceEventId) {
                 if dryRun {
-                    Logger.info("🗑️  Would delete orphaned: '\(syncedEvent.title ?? "Untitled")'")
+                    Logger.info("🗑️  Would delete orphaned: '\(syncedEvent.title ?? "Untitled")'"
+                    + " starting \(DateHelper.formatDate(syncedEvent.startDate))"
+                )
                 } else {
                     do {
                         try calendarManager.eventStore.remove(syncedEvent, span: .thisEvent)
-                        Logger.info("🗑️  Deleted orphaned: '\(syncedEvent.title ?? "Untitled")'")
+                        Logger.info("🗑️  Deleted orphaned: '\(syncedEvent.title ?? "Untitled")'"
+                        + " starting \(DateHelper.formatDate(syncedEvent.startDate))"
+                        )
                         deletedCount += 1
                     } catch {
                         Logger.error("Error deleting orphaned event: \(error.localizedDescription)")
