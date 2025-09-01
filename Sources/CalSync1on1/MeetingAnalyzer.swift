@@ -145,6 +145,11 @@ class MeetingAnalyzer {
     }
 
     func getOwnerEmails(calendarOwner: String) -> [String] {
+        // Skip processing if input is empty
+        if calendarOwner.isEmpty {
+            return []
+        }
+
         var ownerEmails = [calendarOwner]
 
         // If the calendar owner looks like an email, also add just the local part
@@ -153,16 +158,8 @@ class MeetingAnalyzer {
             ownerEmails.append(localPart)
         }
 
-        // If the calendar owner doesn't look like an email, try common variations
-        if !calendarOwner.contains("@") {
-            // Add some common email patterns
-            ownerEmails.append("\(calendarOwner.lowercased())@gmail.com")
-            ownerEmails.append(
-                "\(calendarOwner.lowercased().replacingOccurrences(of: " ", with: "."))@gmail.com"
-            )
-        }
-
-        return ownerEmails
+        // Filter out empty strings and invalid email patterns
+        return ownerEmails.filter { !$0.isEmpty }
     }
 
     func extractNameFromEmail(_ email: String) -> String {
