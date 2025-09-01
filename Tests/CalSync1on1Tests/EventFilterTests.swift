@@ -5,7 +5,12 @@ import XCTest
 @testable import CalSync1on1
 
 final class EventFilterTests: XCTestCase {
+
+    // MARK: - Properties
+
     private var eventStore: EKEventStore!
+
+    // MARK: - Overridden Functions
 
     // MARK: - Setup and Teardown
 
@@ -19,16 +24,7 @@ final class EventFilterTests: XCTestCase {
         super.tearDown()
     }
 
-    // MARK: - Helper Methods
-
-    private func createSimpleEvent(title: String, isAllDay: Bool = false) -> EKEvent {
-        let event = EKEvent(eventStore: eventStore)
-        event.title = title
-        event.isAllDay = isAllDay
-        event.startDate = Date()
-        event.endDate = Date().addingTimeInterval(3600)
-        return event
-    }
+    // MARK: - Functions
 
     // MARK: - Keyword Filtering Tests
 
@@ -73,8 +69,8 @@ final class EventFilterTests: XCTestCase {
             ("pre-standup", false),
             ("standup-meeting", false),
             ("My standup notes", false),
-            ("standard meeting", true),  // Should not match "standup"
-            ("stand", true),  // Should not match "standup"
+            ("standard meeting", true), // Should not match "standup"
+            ("stand", true), // Should not match "standup"
         ]
 
         for (title, shouldPass) in testCases {
@@ -94,10 +90,10 @@ final class EventFilterTests: XCTestCase {
         )
 
         let testCases = [
-            ("Sprint planning and retrospective", false),  // Contains multiple keywords
-            ("Standup scrum meeting", false),  // Contains multiple keywords
-            ("Project planning session", false),  // Contains one keyword
-            ("Team meeting", true),  // Contains no keywords
+            ("Sprint planning and retrospective", false), // Contains multiple keywords
+            ("Standup scrum meeting", false), // Contains multiple keywords
+            ("Project planning session", false), // Contains one keyword
+            ("Team meeting", true), // Contains no keywords
         ]
 
         for (title, shouldPass) in testCases {
@@ -106,7 +102,7 @@ final class EventFilterTests: XCTestCase {
 
             XCTAssertEqual(passes, shouldPass, "Event '\(title)' failed multiple keyword test")
 
-            if !shouldPass && title.contains("planning") && title.contains("retrospective") {
+            if !shouldPass, title.contains("planning"), title.contains("retrospective") {
                 // Should have reasons for both keywords
                 XCTAssertTrue(
                     reasons.count >= 2,
@@ -140,7 +136,8 @@ final class EventFilterTests: XCTestCase {
 
         // Regular event should pass
         let (regularPasses, regularReasons) = EventFilter.checkFilters(
-            regularEvent, configuration: configuration)
+            regularEvent, configuration: configuration
+        )
         XCTAssertTrue(regularPasses, "Regular event should pass all-day filter")
         XCTAssertFalse(
             regularReasons.contains { $0.lowercased().contains("all-day") },
@@ -149,7 +146,8 @@ final class EventFilterTests: XCTestCase {
 
         // All-day event should not pass
         let (allDayPasses, allDayReasons) = EventFilter.checkFilters(
-            allDayEvent, configuration: configuration)
+            allDayEvent, configuration: configuration
+        )
         XCTAssertFalse(allDayPasses, "All-day event should not pass when excluded")
         XCTAssertTrue(
             allDayReasons.contains { $0.lowercased().contains("all-day") },
@@ -214,7 +212,8 @@ final class EventFilterTests: XCTestCase {
             // If no expected reasons, should have no reasons
             if expectedReasonTypes.isEmpty {
                 XCTAssertTrue(
-                    reasons.isEmpty, "Expected no reasons for '\(title)', got: \(reasons)")
+                    reasons.isEmpty, "Expected no reasons for '\(title)', got: \(reasons)"
+                )
             }
         }
     }
@@ -289,10 +288,11 @@ final class EventFilterTests: XCTestCase {
 
         XCTAssertEqual(filteredEvents.count, 2, "Should filter out 3 events")
 
-        let titles = filteredEvents.compactMap { $0.title }
+        let titles = filteredEvents.compactMap(\.title)
         XCTAssertTrue(titles.contains("Good meeting"), "Should include good meeting")
         XCTAssertTrue(
-            titles.contains("Another good meeting"), "Should include another good meeting")
+            titles.contains("Another good meeting"), "Should include another good meeting"
+        )
         XCTAssertFalse(titles.contains("Daily standup"), "Should exclude standup meeting")
         XCTAssertFalse(titles.contains("All day event"), "Should exclude all-day event")
         XCTAssertFalse(titles.contains("Team standup"), "Should exclude all-day standup")
@@ -371,7 +371,8 @@ final class EventFilterTests: XCTestCase {
         // Test keyword reasons
         let keywordEvent = createSimpleEvent(title: "Daily standup")
         let (_, keywordReasons) = EventFilter.checkFilters(
-            keywordEvent, configuration: configuration)
+            keywordEvent, configuration: configuration
+        )
 
         XCTAssertTrue(
             keywordReasons.contains("Contains excluded keyword 'standup'"),
@@ -423,9 +424,21 @@ final class EventFilterTests: XCTestCase {
 
         XCTAssertEqual(filtered.count, 3, "Should only pass the 3 legitimate meetings")
 
-        let passedTitles = filtered.compactMap { $0.title }
+        let passedTitles = filtered.compactMap(\.title)
         XCTAssertTrue(passedTitles.contains("1:1 with Sarah"))
         XCTAssertTrue(passedTitles.contains("Project sync"))
         XCTAssertTrue(passedTitles.contains("Code review"))
     }
+
+    // MARK: - Helper Methods
+
+    private func createSimpleEvent(title: String, isAllDay: Bool = false) -> EKEvent {
+        let event = EKEvent(eventStore: eventStore)
+        event.title = title
+        event.isAllDay = isAllDay
+        event.startDate = Date()
+        event.endDate = Date().addingTimeInterval(3600)
+        return event
+    }
+
 }

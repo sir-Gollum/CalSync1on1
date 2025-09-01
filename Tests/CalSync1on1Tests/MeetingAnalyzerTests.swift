@@ -5,7 +5,12 @@ import XCTest
 @testable import CalSync1on1
 
 final class MeetingAnalyzerTests: XCTestCase {
+
+    // MARK: - Properties
+
     private var analyzer: MeetingAnalyzer!
+
+    // MARK: - Overridden Functions
 
     override func setUp() {
         super.setUp()
@@ -16,6 +21,8 @@ final class MeetingAnalyzerTests: XCTestCase {
         analyzer = nil
         super.tearDown()
     }
+
+    // MARK: - Functions
 
     // MARK: - Email Extraction and Name Formatting Tests
 
@@ -38,7 +45,8 @@ final class MeetingAnalyzerTests: XCTestCase {
             let name = analyzer.extractNameFromEmail(testCase.input)
             XCTAssertEqual(
                 name, testCase.expected,
-                "Failed for email \(testCase.description): '\(testCase.input)'")
+                "Failed for email \(testCase.description): '\(testCase.input)'"
+            )
         }
     }
 
@@ -169,10 +177,10 @@ final class MeetingAnalyzerTests: XCTestCase {
                 }
 
                 // Contains match (but be more selective to avoid false positives)
-                if ownerEmailLower.contains(emailLower) && emailLower.count > 3 {
+                if ownerEmailLower.contains(emailLower), emailLower.count > 3 {
                     return true
                 }
-                if emailLower.contains(ownerEmailLower) && ownerEmailLower.count > 3 {
+                if emailLower.contains(ownerEmailLower), ownerEmailLower.count > 3 {
                     return true
                 }
 
@@ -186,7 +194,8 @@ final class MeetingAnalyzerTests: XCTestCase {
 
             XCTAssertTrue(
                 matches,
-                "Owner variation '\(ownerVariation)' should match attendee '\(attendeeEmail)'")
+                "Owner variation '\(ownerVariation)' should match attendee '\(attendeeEmail)'"
+            )
         }
     }
 
@@ -210,10 +219,10 @@ final class MeetingAnalyzerTests: XCTestCase {
                 }
 
                 // Contains match (but only if meaningful)
-                if ownerEmailLower.contains(emailLower) && emailLower.count > 3 {
+                if ownerEmailLower.contains(emailLower), emailLower.count > 3 {
                     return true
                 }
-                if emailLower.contains(ownerEmailLower) && ownerEmailLower.count > 3 {
+                if emailLower.contains(ownerEmailLower), ownerEmailLower.count > 3 {
                     return true
                 }
 
@@ -270,7 +279,8 @@ final class MeetingAnalyzerTests: XCTestCase {
             if shouldMatch {
                 XCTAssertTrue(
                     matches,
-                    "Real world case: owner '\(owner)' should match attendee '\(attendeeEmail)'")
+                    "Real world case: owner '\(owner)' should match attendee '\(attendeeEmail)'"
+                )
             } else {
                 XCTAssertFalse(
                     matches,

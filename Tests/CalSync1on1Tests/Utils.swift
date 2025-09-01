@@ -22,8 +22,9 @@ extension XCTestCase {
         weeks: Int = 2,
         startOffset: Int = 0,
         ownerEmail: String = "owner@company.com"
-    ) -> Configuration {
-        return Configuration(
+    )
+        -> Configuration {
+        Configuration(
             version: "1.0",
             calendarPair: Configuration.CalendarPair(
                 name: "Test Sync",
