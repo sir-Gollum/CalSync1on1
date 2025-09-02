@@ -40,3 +40,5 @@ playground.xcworkspace
 /*.xcodeproj
 Package.resolved
 .swiftpm/
+
+.vscode
