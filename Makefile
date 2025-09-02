@@ -65,7 +65,17 @@ run: build
 .PHONY: test
 ## Run tests
 test:
-	swift test 2>&1 | xcbeautify
+	swift test --enable-code-coverage 2>&1 | xcbeautify
+
+.PHONY: coverage
+## Run tests and open coverage report
+coverage: test
+	xcrun llvm-cov show --instr-profile=.build/debug/codecov/default.profdata \
+	    .build/debug/CalSync1on1PackageTests.xctest/Contents/MacOS/CalSync1on1PackageTests  \
+		--ignore-filename-regex=.build/ \
+		--ignore-filename-regex=Tests/ \
+		--format html > /tmp/coverage_report.html
+	open /tmp/coverage_report.html
 
 .PHONY: lint
 ## Run linters
