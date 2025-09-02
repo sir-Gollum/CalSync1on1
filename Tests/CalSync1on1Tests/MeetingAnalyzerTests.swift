@@ -50,50 +50,6 @@ final class MeetingAnalyzerTests: XCTestCase {
         }
     }
 
-    // MARK: - Owner Email Generation Tests
-
-    func testGetOwnerEmails() {
-        let testCases:
-            [(
-                input: String,
-                expectedEmails: [String],
-                description: String
-            )] = [
-                (
-                    input: "john.doe@company.com",
-                    expectedEmails: ["john.doe@company.com", "john.doe"],
-                    description: "full email should contain original email and local part"
-                ),
-                (
-                    input: "john.doe",
-                    expectedEmails: ["john.doe"],
-                    description: "account name should contain the original variant"
-                ),
-                (
-                    input: "",
-                    expectedEmails: [],
-                    description: "empty string should return empty array"
-                ),
-            ]
-
-        for testCase in testCases {
-            let ownerEmails = analyzer.getOwnerEmails(calendarOwner: testCase.input)
-
-            // Check that all expected emails are present
-            for expectedEmail in testCase.expectedEmails {
-                XCTAssertTrue(
-                    ownerEmails.contains(expectedEmail),
-                    "Missing expected email '\(expectedEmail)' for input '\(testCase.input)': \(testCase.description)"
-                )
-            }
-
-            // For empty input, verify the result is actually empty
-            if testCase.input.isEmpty {
-                XCTAssertTrue(ownerEmails.isEmpty, "Empty input should return empty array")
-            }
-        }
-    }
-
     // MARK: - Participant Label Mapping Tests
 
     func testParticipantTypeLabelMapping() {
@@ -130,132 +86,35 @@ final class MeetingAnalyzerTests: XCTestCase {
         XCTAssertEqual(name, "Very Long Email Address With Many Parts")
     }
 
-    func testGetOwnerEmailsConsistency() {
-        // Test that the same input always produces the same output
-        let input = "test.user@company.com"
-        let result1 = analyzer.getOwnerEmails(calendarOwner: input)
-        let result2 = analyzer.getOwnerEmails(calendarOwner: input)
+    // MARK: - Core isOneOnOneMeeting Logic Tests
 
-        XCTAssertEqual(result1.count, result2.count)
-        for email in result1 {
-            XCTAssertTrue(result2.contains(email), "Results should be consistent")
-        }
-    }
+    func testIsOneOnOneMeetingLogicComponents() {
+        // Comprehensive test combining owner email generation, matching logic, and edge cases
+        let testCases:
+            [(owner: String, attendeeEmail: String, shouldMatch: Bool, description: String)] = [
+                // Direct matches
+                ("john.doe@company.com", "john.doe@company.com", true, "exact email match"),
+                ("john.doe@company.com", "john.doe", true, "local part match"),
+                ("john.doe", "john.doe@company.com", true, "owner local part to full email"),
+                ("JOHN.DOE@COMPANY.COM", "john.doe@company.com", true, "case insensitive match"),
+                ("john@gmail.com", "john@company.com", true, "same local part different domain"),
 
-    func testExtractNameFromEmailConsistency() {
-        // Test that the same input always produces the same output
-        let input = "test.user@company.com"
-        let result1 = analyzer.extractNameFromEmail(input)
-        let result2 = analyzer.extractNameFromEmail(input)
+                // Non-matches
+                (
+                    "john.smith@company.com", "jane.doe@company.com", false,
+                    "different person - no match"
+                ),
+                ("alice", "bob@company.com", false, "completely different names"),
 
-        XCTAssertEqual(result1, result2, "Results should be consistent")
-    }
+                // Edge cases
+                ("", "john@company.com", false, "empty owner email"),
+            ]
 
-    // MARK: - Integration Tests for Email Matching Logic
-
-    func testEmailMatchingLogicCombinations() {
-        // Test various combinations that would be used in isOneOnOneMeeting
-        let ownerVariations = [
-            "owner@company.com",
-            "OWNER@COMPANY.COM",
-            "owner",
-            "owner@gmail.com",
-        ]
-
-        let attendeeEmail = "owner@company.com"
-
-        for ownerVariation in ownerVariations {
-            let ownerEmails = analyzer.getOwnerEmails(calendarOwner: ownerVariation)
+        for testCase in testCases {
+            let ownerEmails = analyzer.getOwnerEmails(calendarOwner: testCase.owner)
 
             let matches = ownerEmails.contains { ownerEmail in
-                let emailLower = attendeeEmail.lowercased()
-                let ownerEmailLower = ownerEmail.lowercased()
-
-                // Direct match
-                if emailLower == ownerEmailLower {
-                    return true
-                }
-
-                // Contains match (but be more selective to avoid false positives)
-                if ownerEmailLower.contains(emailLower), emailLower.count > 3 {
-                    return true
-                }
-                if emailLower.contains(ownerEmailLower), ownerEmailLower.count > 3 {
-                    return true
-                }
-
-                // Local part match
-                let emailLocal = emailLower.components(separatedBy: "@").first ?? emailLower
-                let ownerLocal =
-                    ownerEmailLower.components(separatedBy: "@").first ?? ownerEmailLower
-
-                return emailLocal == ownerLocal && emailLocal.count > 1
-            }
-
-            XCTAssertTrue(
-                matches,
-                "Owner variation '\(ownerVariation)' should match attendee '\(attendeeEmail)'"
-            )
-        }
-    }
-
-    func testEmailMatchingLogicNonMatches() {
-        // Test cases that should NOT match - using more conservative test cases
-        let nonMatchingCases = [
-            ("john.smith", "jane.doe@company.com"),
-            ("alice", "bob@company.com"),
-        ]
-
-        for (owner, attendeeEmail) in nonMatchingCases {
-            let ownerEmails = analyzer.getOwnerEmails(calendarOwner: owner)
-
-            let matches = ownerEmails.contains { ownerEmail in
-                let emailLower = attendeeEmail.lowercased()
-                let ownerEmailLower = ownerEmail.lowercased()
-
-                // Direct match
-                if emailLower == ownerEmailLower {
-                    return true
-                }
-
-                // Contains match (but only if meaningful)
-                if ownerEmailLower.contains(emailLower), emailLower.count > 3 {
-                    return true
-                }
-                if emailLower.contains(ownerEmailLower), ownerEmailLower.count > 3 {
-                    return true
-                }
-
-                // Local part match
-                let emailLocal = emailLower.components(separatedBy: "@").first ?? emailLower
-                let ownerLocal =
-                    ownerEmailLower.components(separatedBy: "@").first ?? ownerEmailLower
-
-                return emailLocal == ownerLocal && emailLocal.count > 2
-            }
-
-            XCTAssertFalse(matches, "Owner '\(owner)' should NOT match attendee '\(attendeeEmail)'")
-        }
-    }
-
-    // MARK: - Realistic Scenario Tests
-
-    func testRealWorldEmailPatterns() {
-        let realWorldCases = [
-            // Different domains but same person - these should match
-            ("john@gmail.com", "john@company.com", true),
-            ("john.doe@personal.com", "john.doe@work.com", true),
-
-            // Clear non-matches
-            ("john.smith", "jane.doe@company.com", false),
-            ("different.person", "other.person@company.com", false),
-        ]
-
-        for (owner, attendeeEmail, shouldMatch) in realWorldCases {
-            let ownerEmails = analyzer.getOwnerEmails(calendarOwner: owner)
-
-            let matches = ownerEmails.contains { ownerEmail in
-                let emailLower = attendeeEmail.lowercased()
+                let emailLower = testCase.attendeeEmail.lowercased()
                 let ownerEmailLower = ownerEmail.lowercased()
 
                 // Direct match
@@ -276,39 +135,88 @@ final class MeetingAnalyzerTests: XCTestCase {
                 return emailLocal == ownerLocal
             }
 
-            if shouldMatch {
-                XCTAssertTrue(
-                    matches,
-                    "Real world case: owner '\(owner)' should match attendee '\(attendeeEmail)'"
-                )
-            } else {
-                XCTAssertFalse(
-                    matches,
-                    "Real world case: owner '\(owner)' should NOT match attendee '\(attendeeEmail)'"
-                )
-            }
+            XCTAssertEqual(
+                matches, testCase.shouldMatch,
+                "Owner '\(testCase.owner)' should \(testCase.shouldMatch ? "" : "not ")match attendee '\(testCase.attendeeEmail)': \(testCase.description)"
+            )
         }
     }
 
-    func testEmailExtractionFromVariousFormats() {
-        // Test the kind of email extraction that would happen in real scenarios
-        let emailFormats = [
-            "simple@company.com",
-            "first.last@company.com",
-            "first_last@company.com",
-            "first-last@company.com",
-            "f.last@company.com",
-            "flast@company.com",
-            "first.m.last@company.com",
-            "123user@company.com",
-            "user123@company.com",
-            "user.123@company.com",
+    func testOwnerEmailGenerationAndConsistency() {
+        // Test getOwnerEmails function that's crucial for 1:1 detection
+        let testCases: [(input: String, expected: [String], description: String)] = [
+            (
+                "john.doe@company.com", ["john.doe@company.com", "john.doe"],
+                "full email with local part"
+            ),
+            ("john.doe", ["john.doe"], "local part only"),
+            ("", [], "empty string"),
         ]
 
-        for email in emailFormats {
-            let extractedName = analyzer.extractNameFromEmail(email)
-            XCTAssertFalse(extractedName.isEmpty, "Should extract some name from '\(email)'")
-            XCTAssertFalse(extractedName.contains("@"), "Extracted name should not contain @")
+        for testCase in testCases {
+            let result1 = analyzer.getOwnerEmails(calendarOwner: testCase.input)
+            let result2 = analyzer.getOwnerEmails(calendarOwner: testCase.input)
+
+            // Test expected results
+            XCTAssertEqual(result1, testCase.expected, "Failed for: \(testCase.description)")
+
+            // Test consistency
+            XCTAssertEqual(
+                result1, result2, "Results should be consistent for: \(testCase.description)"
+            )
         }
     }
+
+    func testNameExtractionAndConsistency() {
+        // Test name extraction logic with various formats and consistency
+        let nameExtractionCases: [(email: String, expectedName: String)] = [
+            ("john.doe@company.com", "John Doe"),
+            ("alice_smith@company.com", "Alice Smith"),
+            ("bob@company.com", "Bob"),
+            ("complex.name.here@company.com", "Complex Name Here"),
+            ("first-last@company.com", "First-Last"),
+            ("user123@company.com", "User123"),
+            (
+                "very.long.email.address.with.many.parts@company.com",
+                "Very Long Email Address With Many Parts"
+            ),
+        ]
+
+        for testCase in nameExtractionCases {
+            let extractedName1 = analyzer.extractNameFromEmail(testCase.email)
+            let extractedName2 = analyzer.extractNameFromEmail(testCase.email)
+
+            // Test expected extraction
+            XCTAssertEqual(
+                extractedName1, testCase.expectedName,
+                "Name extraction failed for email: \(testCase.email)"
+            )
+
+            // Test consistency
+            XCTAssertEqual(extractedName1, extractedName2, "Name extraction should be consistent")
+
+            // Test that extracted name doesn't contain @
+            XCTAssertFalse(extractedName1.contains("@"), "Extracted name should not contain @")
+            XCTAssertFalse(
+                extractedName1.isEmpty, "Should extract some name from '\(testCase.email)'"
+            )
+        }
+    }
+
+    func testDebugEventDetailsGeneration() {
+        // Test that the debug helper exists and can be called
+        // We create a minimal event just to test the debug functionality exists
+        let eventStore = EKEventStore()
+        let event = EKEvent(eventStore: eventStore)
+        event.title = "Debug Test Event"
+        event.startDate = Date()
+        event.endDate = Date().addingTimeInterval(3600)
+
+        let debugOutput = analyzer.debugEventDetails(event, calendarOwner: "test@company.com")
+
+        XCTAssertTrue(debugOutput.contains("Event Debug Details"), "Should contain debug header")
+        XCTAssertTrue(debugOutput.contains("Debug Test Event"), "Should contain event title")
+        XCTAssertTrue(debugOutput.contains("test@company.com"), "Should contain owner email")
+    }
+
 }

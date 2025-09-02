@@ -11,6 +11,8 @@ final class EventMetadataTests: XCTestCase {
     private var eventStore: EKEventStore!
     private var testEvent: EKEvent!
 
+    // MARK: - Overridden Functions
+
     // MARK: - Setup & Teardown
 
     override func setUp() {
@@ -27,6 +29,8 @@ final class EventMetadataTests: XCTestCase {
         eventStore = nil
         super.tearDown()
     }
+
+    // MARK: - Functions
 
     // MARK: - Basic Functionality Tests
 
@@ -195,7 +199,7 @@ final class EventMetadataTests: XCTestCase {
     private func createTestEvents(count: Int) -> [EKEvent] {
         var events: [EKEvent] = []
 
-        for i in 0..<count {
+        for i in 0 ..< count {
             let event = EKEvent(eventStore: eventStore)
             event.title = "Test Event \(i + 1)"
             event.startDate = Date().addingTimeInterval(TimeInterval(i * 3600))
@@ -217,7 +221,7 @@ final class SyncMetadataTests: XCTestCase {
 
         // Test encoding
         guard let encodedData = try? JSONEncoder().encode(originalMetadata),
-            let jsonString = String(data: encodedData, encoding: .utf8)
+              let jsonString = String(data: encodedData, encoding: .utf8)
         else {
             XCTFail("Should encode SyncMetadata")
             return
@@ -225,7 +229,7 @@ final class SyncMetadataTests: XCTestCase {
 
         XCTAssertTrue(jsonString.contains("sourceEventId"), "JSON should contain key")
         XCTAssertTrue(jsonString.contains(sourceEventId), "JSON should contain value")
-        
+
         // Test decoding
         guard
             let decodedMetadata = try? JSONDecoder().decode(
@@ -255,9 +259,9 @@ final class SyncMetadataTests: XCTestCase {
             let metadata = SyncMetadata(sourceEventId: specialId)
 
             guard let encodedData = try? JSONEncoder().encode(metadata),
-                let decodedMetadata = try? JSONDecoder().decode(
-                    SyncMetadata.self, from: encodedData
-                )
+                  let decodedMetadata = try? JSONDecoder().decode(
+                      SyncMetadata.self, from: encodedData
+                  )
             else {
                 XCTFail("Should handle special characters: '\(specialId)'")
                 continue
