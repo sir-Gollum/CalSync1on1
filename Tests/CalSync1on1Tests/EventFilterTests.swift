@@ -26,6 +26,53 @@ final class EventFilterTests: XCTestCase {
 
     // MARK: - Functions
 
+    // MARK: - Configuration Helpers
+
+    func createTestConfiguration(
+        excludeKeywords: [String] = [
+            "standup",
+            "scrum",
+            "retrospective",
+            "all-hands",
+            "training",
+            "townhall",
+        ],
+        excludeAllDay: Bool = true,
+        weeks: Int = 2,
+        startOffset: Int = 0,
+        ownerEmail: String = "owner@company.com"
+    )
+        -> Configuration {
+        Configuration(
+            version: "1.0",
+            calendarPair: Configuration.CalendarPair(
+                name: "Test Sync",
+                source: Configuration.CalendarPair.CalendarInfo(
+                    account: nil,
+                    calendar: "Work Calendar"
+                ),
+                destination: Configuration.CalendarPair.CalendarInfo(
+                    account: nil,
+                    calendar: "1:1 Meetings"
+                ),
+                titleTemplate: "1:1 with {person}",
+                ownerEmail: ownerEmail
+            ),
+            syncWindow: Configuration.SyncWindow(
+                weeks: weeks,
+                startOffset: startOffset
+            ),
+            filters: Configuration.Filters(
+                excludeAllDay: excludeAllDay,
+                excludeKeywords: excludeKeywords
+            ),
+            logging: Configuration.Logging(
+                level: "info",
+                coloredOutput: false
+            )
+        )
+    }
+
     // MARK: - Keyword Filtering Tests
 
     func testKeywordFilteringCaseInsensitive() {
