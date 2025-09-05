@@ -88,6 +88,9 @@ class SyncManager {
                 case let .error(message):
                     result.errors.append(message)
                 }
+            } else {
+                // Count non-1:1 events (including all-day events) as skipped
+                result.skipped += 1
             }
         }
 
@@ -176,9 +179,23 @@ class SyncManager {
         syncedTitle: String
     )
         -> SyncAction {
+        // Check if event has an identifier (required for sync tracking)
+        guard let sourceEventId = sourceEvent.eventIdentifier else {
+            Logger.info(
+                "Event '\(sourceEvent.title ?? "Untitled")' has no identifier, creating new synced event"
+            )
+            return createNewSyncedEvent(
+                from: sourceEvent,
+                title: syncedTitle,
+                in: destCalendar,
+                otherPersonName: otherPersonName,
+                sourceCalendar: sourceCalendar
+            ) ? .created : .error("Failed to create synced event")
+        }
+
         // Check if this event already has a synced counterpart
         if let existingEvent = EventMetadata.findSyncedEvent(
-            sourceID: sourceEvent.eventIdentifier,
+            sourceID: sourceEventId,
             in: destCalendar,
             eventStore: calendarManager.eventStore
         ) {
@@ -249,9 +266,23 @@ class SyncManager {
         syncedTitle: String
     )
         -> SyncAction {
+        // Check if event has an identifier (required for sync tracking)
+        guard let sourceEventId = sourceEvent.eventIdentifier else {
+            Logger.info(
+                "Recurring event '\(sourceEvent.title ?? "Untitled")' has no identifier, creating new synced event"
+            )
+            return createNewRecurringEvent(
+                from: sourceEvent,
+                title: syncedTitle,
+                in: destCalendar,
+                otherPersonName: otherPersonName,
+                sourceCalendar: sourceCalendar
+            ) ? .created : .error("Failed to create recurring synced event")
+        }
+
         // For recurring events, we sync the entire series
         if let existingEvent = EventMetadata.findSyncedEvent(
-            sourceID: sourceEvent.eventIdentifier,
+            sourceID: sourceEventId,
             in: destCalendar,
             eventStore: calendarManager.eventStore
         ) {
@@ -353,10 +384,12 @@ class SyncManager {
         event.calendar = calendar
 
         // Add sync metadata
-        EventMetadata.addSyncMetadata(
-            event,
-            SourceEventId: sourceEvent.eventIdentifier
-        )
+        if let sourceEventId = sourceEvent.eventIdentifier {
+            EventMetadata.addSyncMetadata(
+                event,
+                SourceEventId: sourceEventId
+            )
+        }
 
         do {
             try calendarManager.eventStore.save(event, span: .thisEvent)
@@ -387,10 +420,12 @@ class SyncManager {
         }
 
         // Add sync metadata
-        EventMetadata.addSyncMetadata(
-            event,
-            SourceEventId: sourceEvent.eventIdentifier
-        )
+        if let sourceEventId = sourceEvent.eventIdentifier {
+            EventMetadata.addSyncMetadata(
+                event,
+                SourceEventId: sourceEventId
+            )
+        }
 
         do {
             try calendarManager.eventStore.save(event, span: .futureEvents)
@@ -419,10 +454,12 @@ class SyncManager {
         }
 
         // Update sync metadata
-        EventMetadata.addSyncMetadata(
-            existingEvent,
-            SourceEventId: sourceEvent.eventIdentifier
-        )
+        if let sourceEventId = sourceEvent.eventIdentifier {
+            EventMetadata.addSyncMetadata(
+                existingEvent,
+                SourceEventId: sourceEventId
+            )
+        }
 
         do {
             try calendarManager.eventStore.save(existingEvent, span: .futureEvents)
@@ -446,10 +483,12 @@ class SyncManager {
         existingEvent.endDate = sourceEvent.endDate
 
         // Update sync metadata
-        EventMetadata.addSyncMetadata(
-            existingEvent,
-            SourceEventId: sourceEvent.eventIdentifier
-        )
+        if let sourceEventId = sourceEvent.eventIdentifier {
+            EventMetadata.addSyncMetadata(
+                existingEvent,
+                SourceEventId: sourceEventId
+            )
+        }
 
         do {
             try calendarManager.eventStore.save(existingEvent, span: .thisEvent)
@@ -496,14 +535,16 @@ class SyncManager {
 
             if !validSourceEventIds.contains(metadata.sourceEventId) {
                 if dryRun {
-                    Logger.info("🗑️  Would delete orphaned: '\(syncedEvent.title ?? "Untitled")'"
-                        + " starting \(DateHelper.formatDate(syncedEvent.startDate))"
+                    Logger.info(
+                        "🗑️  Would delete orphaned: '\(syncedEvent.title ?? "Untitled")'"
+                            + " starting \(DateHelper.formatDate(syncedEvent.startDate))"
                     )
                 } else {
                     do {
                         try calendarManager.eventStore.remove(syncedEvent, span: .thisEvent)
-                        Logger.info("🗑️  Deleted orphaned: '\(syncedEvent.title ?? "Untitled")'"
-                            + " starting \(DateHelper.formatDate(syncedEvent.startDate))"
+                        Logger.info(
+                            "🗑️  Deleted orphaned: '\(syncedEvent.title ?? "Untitled")'"
+                                + " starting \(DateHelper.formatDate(syncedEvent.startDate))"
                         )
                         deletedCount += 1
                     } catch {
