@@ -230,25 +230,13 @@ final class ConfigurationLoadingTests: XCTestCase {
     }
 
     func testConfigurationSaveAndLoad() {
-        // Create a custom configuration starting from defaults
-        let customConfig = Configuration(
-            version: Configuration.default.version,
-            calendarPair: Configuration.CalendarPair(
-                name: "Save Test",
-                source: Configuration.CalendarPair.CalendarInfo(
-                    account: "test@work.com", calendar: "Test Work"
-                ),
-                destination: Configuration.CalendarPair.CalendarInfo(
-                    account: "test@personal.com", calendar: "Test Personal"
-                ),
-                titleTemplate: "Test: {{otherPerson}}",
-                ownerEmail: nil
-            ),
-            syncWindow: Configuration.SyncWindow(weeks: 5, startOffset: 1),
-            filters: Configuration.Filters(
-                excludeAllDay: false, excludeKeywords: ["test1", "test2"]
-            ),
-            logging: Configuration.Logging(level: "warn", coloredOutput: false)
+        let customConfig = Configuration.with(
+            weeks: 5,
+            startOffset: 1,
+            excludeKeywords: ["test1", "test2"],
+            excludeAllDay: false,
+            titleTemplate: "Test: {{otherPerson}}",
+            ownerEmail: "owner@company.com"
         )
 
         // Save configuration to temp file

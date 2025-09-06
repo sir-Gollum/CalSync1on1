@@ -41,7 +41,13 @@ final class SyncManagerTests: XCTestCase {
 
         analyzer = createTestAnalyzer()
 
-        mockConfiguration = createTestConfiguration()
+        mockConfiguration = Configuration.with(
+            weeks: 4,
+            startOffset: 0,
+            excludeKeywords: [],
+            excludeAllDay: true,
+            ownerEmail: "owner@company.com"
+        )
         syncManager = SyncManager(configuration: mockConfiguration, dryRun: false)
         dryRunSyncManager = SyncManager(configuration: mockConfiguration, dryRun: true)
 
@@ -433,7 +439,7 @@ final class SyncManagerTests: XCTestCase {
             clearAllTestEvents()
 
             // Create a custom sync manager with the specific title template
-            let testConfig = createTestConfiguration(titleTemplate: testCase.titleTemplate)
+            let testConfig = Configuration.with(titleTemplate: testCase.titleTemplate)
             let testSyncManager = SyncManager(configuration: testConfig, dryRun: false)
 
             let event = createSimpleEvent(
@@ -916,34 +922,6 @@ final class SyncManagerTests: XCTestCase {
         TestMeetingAnalyzer()
     }
 
-    // Create a test configuration with custom title template
-    private func createTestConfiguration(titleTemplate: String = "1:1 with {{otherPerson}}")
-        -> Configuration {
-        let calendarInfo = Configuration.CalendarPair.CalendarInfo(
-            account: nil,
-            calendar: "Test Calendar"
-        )
-
-        let calendarPair = Configuration.CalendarPair(
-            name: "Test Pair",
-            source: calendarInfo,
-            destination: calendarInfo,
-            titleTemplate: titleTemplate,
-            ownerEmail: "owner@company.com"
-        )
-
-        let syncWindow = Configuration.SyncWindow(weeks: 4, startOffset: 0)
-        let filters = Configuration.Filters(excludeAllDay: true, excludeKeywords: [])
-        let logging = Configuration.Logging(level: "info", coloredOutput: false)
-
-        return Configuration(
-            version: "1.0",
-            calendarPair: calendarPair,
-            syncWindow: syncWindow,
-            filters: filters,
-            logging: logging
-        )
-    }
 }
 
 // MARK: - Test Meeting Analyzer
