@@ -28,55 +28,10 @@ final class EventFilterTests: XCTestCase {
 
     // MARK: - Configuration Helpers
 
-    func createTestConfiguration(
-        excludeKeywords: [String] = [
-            "standup",
-            "scrum",
-            "retrospective",
-            "all-hands",
-            "training",
-            "townhall",
-        ],
-        excludeAllDay: Bool = true,
-        weeks: Int = 2,
-        startOffset: Int = 0,
-        ownerEmail: String = "owner@company.com"
-    )
-        -> Configuration {
-        Configuration(
-            version: "1.0",
-            calendarPair: Configuration.CalendarPair(
-                name: "Test Sync",
-                source: Configuration.CalendarPair.CalendarInfo(
-                    account: nil,
-                    calendar: "Work Calendar"
-                ),
-                destination: Configuration.CalendarPair.CalendarInfo(
-                    account: nil,
-                    calendar: "1:1 Meetings"
-                ),
-                titleTemplate: "1:1 with {person}",
-                ownerEmail: ownerEmail
-            ),
-            syncWindow: Configuration.SyncWindow(
-                weeks: weeks,
-                startOffset: startOffset
-            ),
-            filters: Configuration.Filters(
-                excludeAllDay: excludeAllDay,
-                excludeKeywords: excludeKeywords
-            ),
-            logging: Configuration.Logging(
-                level: "info",
-                coloredOutput: false
-            )
-        )
-    }
-
     // MARK: - Keyword Filtering Tests
 
     func testKeywordFilteringCaseInsensitive() {
-        let configuration = createTestConfiguration(excludeKeywords: ["standup", "scrum"])
+        let configuration = Configuration.with(excludeKeywords: ["standup", "scrum"])
 
         let testCases = [
             ("Daily Standup", false),
@@ -89,7 +44,7 @@ final class EventFilterTests: XCTestCase {
         ]
 
         for (title, shouldPass) in testCases {
-            let event = createSimpleEvent(title: title)
+            let event = createTestEvent(title: title)
 
             let (passes, reasons) = EventFilter.checkFilters(event, configuration: configuration)
 
@@ -108,7 +63,7 @@ final class EventFilterTests: XCTestCase {
     }
 
     func testKeywordFilteringPartialMatches() {
-        let configuration = createTestConfiguration(excludeKeywords: ["standup"])
+        let configuration = Configuration.with(excludeKeywords: ["standup"])
 
         let testCases = [
             ("standup", false),
@@ -121,7 +76,7 @@ final class EventFilterTests: XCTestCase {
         ]
 
         for (title, shouldPass) in testCases {
-            let event = createSimpleEvent(title: title)
+            let event = createTestEvent(title: title)
             let (passes, _) = EventFilter.checkFilters(event, configuration: configuration)
 
             XCTAssertEqual(
@@ -132,9 +87,9 @@ final class EventFilterTests: XCTestCase {
     }
 
     func testKeywordFilteringMultipleKeywords() {
-        let configuration = createTestConfiguration(
-            excludeKeywords: ["standup", "scrum", "retrospective", "planning"]
-        )
+        let configuration = Configuration.with(excludeKeywords: [
+            "standup", "scrum", "retrospective", "planning",
+        ])
 
         let testCases = [
             ("Sprint planning and retrospective", false), // Contains multiple keywords
@@ -144,7 +99,7 @@ final class EventFilterTests: XCTestCase {
         ]
 
         for (title, shouldPass) in testCases {
-            let event = createSimpleEvent(title: title)
+            let event = createTestEvent(title: title)
             let (passes, reasons) = EventFilter.checkFilters(event, configuration: configuration)
 
             XCTAssertEqual(passes, shouldPass, "Event '\(title)' failed multiple keyword test")
@@ -160,9 +115,9 @@ final class EventFilterTests: XCTestCase {
     }
 
     func testKeywordFilteringWithEmptyKeywords() {
-        let configuration = createTestConfiguration(excludeKeywords: [])
+        let configuration = Configuration.with(excludeKeywords: [])
 
-        let event = createSimpleEvent(title: "standup scrum retrospective")
+        let event = createTestEvent(title: "standup scrum retrospective")
 
         let (passes, reasons) = EventFilter.checkFilters(event, configuration: configuration)
 
@@ -176,10 +131,10 @@ final class EventFilterTests: XCTestCase {
     // MARK: - All-Day Event Filtering Tests
 
     func testAllDayEventFiltering() {
-        let configuration = createTestConfiguration(excludeAllDay: true)
+        let configuration = Configuration.with(excludeAllDay: true)
 
-        let regularEvent = createSimpleEvent(title: "Regular meeting", isAllDay: false)
-        let allDayEvent = createSimpleEvent(title: "All day event", isAllDay: true)
+        let regularEvent = createTestEvent(title: "Regular meeting", isAllDay: false)
+        let allDayEvent = createTestEvent(title: "All day event", isAllDay: true)
 
         // Regular event should pass
         let (regularPasses, regularReasons) = EventFilter.checkFilters(
@@ -203,9 +158,9 @@ final class EventFilterTests: XCTestCase {
     }
 
     func testAllDayEventFilteringDisabled() {
-        let configuration = createTestConfiguration(excludeAllDay: false)
+        let configuration = Configuration.with(excludeAllDay: false)
 
-        let allDayEvent = createSimpleEvent(title: "All day event", isAllDay: true)
+        let allDayEvent = createTestEvent(title: "All day event", isAllDay: true)
 
         let (passes, reasons) = EventFilter.checkFilters(allDayEvent, configuration: configuration)
 
@@ -219,10 +174,7 @@ final class EventFilterTests: XCTestCase {
     // MARK: - Combined Filter Tests
 
     func testCombinedFilters() {
-        let configuration = createTestConfiguration(
-            excludeKeywords: ["standup"],
-            excludeAllDay: true
-        )
+        let configuration = Configuration.with(excludeKeywords: ["standup"], excludeAllDay: true)
 
         let testCases = [
             // Should pass (no filters triggered)
@@ -239,7 +191,7 @@ final class EventFilterTests: XCTestCase {
         ]
 
         for (title, isAllDay, shouldPass, expectedReasonTypes) in testCases {
-            let event = createSimpleEvent(title: title, isAllDay: isAllDay)
+            let event = createTestEvent(title: title, isAllDay: isAllDay)
 
             let (passes, reasons) = EventFilter.checkFilters(event, configuration: configuration)
 
@@ -266,13 +218,12 @@ final class EventFilterTests: XCTestCase {
     }
 
     func testFilterReasoningOutput() {
-        let configuration = createTestConfiguration(
-            excludeKeywords: ["meeting", "standup"],
-            excludeAllDay: true
+        let configuration = Configuration.with(
+            excludeKeywords: ["meeting", "standup"], excludeAllDay: true
         )
 
         // Event that triggers both filters
-        let event = createSimpleEvent(title: "All day standup meeting", isAllDay: true)
+        let event = createTestEvent(title: "All day standup meeting", isAllDay: true)
 
         let (passes, reasons) = EventFilter.checkFilters(event, configuration: configuration)
 
@@ -298,8 +249,8 @@ final class EventFilterTests: XCTestCase {
     }
 
     func testCheckFiltersReturnsTupleFormat() {
-        let configuration = createTestConfiguration()
-        let event = createSimpleEvent(title: "Test")
+        let configuration = Configuration.default
+        let event = createTestEvent(title: "Test")
 
         let result = EventFilter.checkFilters(event, configuration: configuration)
 
@@ -308,7 +259,7 @@ final class EventFilterTests: XCTestCase {
         XCTAssertTrue(result.reasons.isEmpty, "Should have no reasons when passing")
 
         // Test with failing case
-        let failingEvent = createSimpleEvent(title: "Failing event", isAllDay: true)
+        let failingEvent = createTestEvent(title: "standup", isAllDay: true)
         let failingResult = EventFilter.checkFilters(failingEvent, configuration: configuration)
 
         XCTAssertFalse(failingResult.passes, "Should fail all-day filter")
@@ -318,17 +269,13 @@ final class EventFilterTests: XCTestCase {
     // MARK: - applyFilters Tests
 
     func testApplyFiltersReturnsFilteredEvents() {
-        let configuration = createTestConfiguration(
-            excludeKeywords: ["standup"],
-            excludeAllDay: true
-        )
+        let configuration = Configuration.with(excludeKeywords: ["standup"], excludeAllDay: true)
 
         let events = [
-            createSimpleEvent(title: "Good meeting"),
-            createSimpleEvent(title: "Daily standup"),
-            createSimpleEvent(title: "All day event", isAllDay: true),
-            createSimpleEvent(title: "Another good meeting"),
-            createSimpleEvent(title: "Team standup", isAllDay: true),
+            createTestEvent(title: "Good meeting"),
+            createTestEvent(title: "Daily standup"),
+            createTestEvent(title: "All day event", isAllDay: true),
+            createTestEvent(title: "Another good meeting"),
         ]
 
         let filteredEvents = EventFilter.applyFilters(events, configuration: configuration)
@@ -346,7 +293,7 @@ final class EventFilterTests: XCTestCase {
     }
 
     func testApplyFiltersWithEmptyEvents() {
-        let configuration = createTestConfiguration()
+        let configuration = Configuration.default
         let emptyEvents: [EKEvent] = []
 
         let filteredEvents = EventFilter.applyFilters(emptyEvents, configuration: configuration)
@@ -355,12 +302,12 @@ final class EventFilterTests: XCTestCase {
     }
 
     func testApplyFiltersPreservesEventOrder() {
-        let configuration = createTestConfiguration()
+        let configuration = Configuration.default
 
         let events = [
-            createSimpleEvent(title: "First meeting"),
-            createSimpleEvent(title: "Second meeting"),
-            createSimpleEvent(title: "Third meeting"),
+            createTestEvent(title: "First meeting"),
+            createTestEvent(title: "Second meeting"),
+            createTestEvent(title: "Third meeting"),
         ]
 
         let filteredEvents = EventFilter.applyFilters(events, configuration: configuration)
@@ -374,7 +321,7 @@ final class EventFilterTests: XCTestCase {
     // MARK: - Edge Cases and Error Handling
 
     func testFilteringWithUnicodeCharacters() {
-        let configuration = createTestConfiguration(excludeKeywords: ["café", "naïve"])
+        let configuration = Configuration.with(excludeKeywords: ["café", "naïve"])
 
         let testCases = [
             ("Meeting with müşteri", true),
@@ -384,7 +331,7 @@ final class EventFilterTests: XCTestCase {
         ]
 
         for (title, shouldPass) in testCases {
-            let event = createSimpleEvent(title: title)
+            let event = createTestEvent(title: title)
             let (passes, _) = EventFilter.checkFilters(event, configuration: configuration)
 
             XCTAssertEqual(passes, shouldPass, "Unicode keyword filtering failed for '\(title)'")
@@ -392,7 +339,7 @@ final class EventFilterTests: XCTestCase {
     }
 
     func testFilteringWithSpecialCharacters() {
-        let configuration = createTestConfiguration(excludeKeywords: ["stand-up", "1:1", "Q&A"])
+        let configuration = Configuration.with(excludeKeywords: ["stand-up", "1:1", "Q&A"])
 
         let testCases = [
             ("Daily stand-up", false),
@@ -402,7 +349,7 @@ final class EventFilterTests: XCTestCase {
         ]
 
         for (title, shouldPass) in testCases {
-            let event = createSimpleEvent(title: title)
+            let event = createTestEvent(title: title)
             let (passes, _) = EventFilter.checkFilters(event, configuration: configuration)
 
             XCTAssertEqual(passes, shouldPass, "Special character filtering failed for '\(title)'")
@@ -410,13 +357,12 @@ final class EventFilterTests: XCTestCase {
     }
 
     func testFilteringReasonsAreDescriptive() {
-        let configuration = createTestConfiguration(
-            excludeKeywords: ["standup", "scrum"],
-            excludeAllDay: true
+        let configuration = Configuration.with(
+            excludeKeywords: ["standup", "scrum"], excludeAllDay: true
         )
 
         // Test keyword reasons
-        let keywordEvent = createSimpleEvent(title: "Daily standup")
+        let keywordEvent = createTestEvent(title: "Daily standup")
         let (_, keywordReasons) = EventFilter.checkFilters(
             keywordEvent, configuration: configuration
         )
@@ -427,7 +373,7 @@ final class EventFilterTests: XCTestCase {
         )
 
         // Test all-day reason
-        let allDayEvent = createSimpleEvent(title: "All day meeting", isAllDay: true)
+        let allDayEvent = createTestEvent(title: "All day event", isAllDay: true)
         let (_, allDayReasons) = EventFilter.checkFilters(allDayEvent, configuration: configuration)
 
         XCTAssertTrue(
@@ -439,32 +385,32 @@ final class EventFilterTests: XCTestCase {
     // MARK: - Integration-style Tests
 
     func testRealisticFilteringScenarios() {
-        let configuration = createTestConfiguration(
+        let configuration = Configuration.with(
             excludeKeywords: [
-                "standup", "scrum", "retrospective", "planning",
-                "all-hands", "townhall", "training", "workshop",
+                "standup", "scrum", "retrospective", "planning", "all-hands", "townhall",
+                "training", "workshop",
             ],
             excludeAllDay: true
         )
 
         let realWorldEvents = [
             // Should pass
-            createSimpleEvent(title: "1:1 with Sarah"),
-            createSimpleEvent(title: "Project sync"),
-            createSimpleEvent(title: "Code review"),
+            createTestEvent(title: "1:1 with Sarah"),
+            createTestEvent(title: "Project sync"),
+            createTestEvent(title: "Code review"),
 
             // Should be filtered - keywords
-            createSimpleEvent(title: "Daily standup"),
-            createSimpleEvent(title: "Sprint planning"),
-            createSimpleEvent(title: "Retrospective meeting"),
-            createSimpleEvent(title: "All-hands meeting"),
+            createTestEvent(title: "Daily standup"),
+            createTestEvent(title: "Sprint planning"),
+            createTestEvent(title: "Retrospective meeting"),
+            createTestEvent(title: "All-hands meeting"),
 
             // Should be filtered - all-day
-            createSimpleEvent(title: "Company outing", isAllDay: true),
-            createSimpleEvent(title: "Holiday", isAllDay: true),
+            createTestEvent(title: "Company outing", isAllDay: true),
+            createTestEvent(title: "Holiday", isAllDay: true),
 
             // Should be filtered - both
-            createSimpleEvent(title: "All day training", isAllDay: true),
+            createTestEvent(title: "All day training", isAllDay: true),
         ]
 
         let filtered = EventFilter.applyFilters(realWorldEvents, configuration: configuration)
@@ -475,17 +421,6 @@ final class EventFilterTests: XCTestCase {
         XCTAssertTrue(passedTitles.contains("1:1 with Sarah"))
         XCTAssertTrue(passedTitles.contains("Project sync"))
         XCTAssertTrue(passedTitles.contains("Code review"))
-    }
-
-    // MARK: - Helper Methods
-
-    private func createSimpleEvent(title: String, isAllDay: Bool = false) -> EKEvent {
-        let event = EKEvent(eventStore: eventStore)
-        event.title = title
-        event.isAllDay = isAllDay
-        event.startDate = Date()
-        event.endDate = Date().addingTimeInterval(3600)
-        return event
     }
 
 }

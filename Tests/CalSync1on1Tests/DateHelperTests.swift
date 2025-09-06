@@ -37,15 +37,9 @@ final class DateHelperTests: XCTestCase {
     }
 
     func testDateHelperWithCustomSyncWindow() {
-        let customConfig = Configuration(
-            version: "1.0",
-            calendarPair: Configuration.default.calendarPair,
-            syncWindow: Configuration.SyncWindow(weeks: 3, startOffset: -1),
-            filters: Configuration.default.filters,
-            logging: Configuration.default.logging
-        )
+        let config = Configuration.with(weeks: 3, startOffset: -1)
+        let dateHelper = DateHelper(configuration: config)
 
-        let dateHelper = DateHelper(configuration: customConfig)
         let startDate = dateHelper.getCurrentWeekStart()
         let endDate = dateHelper.getSyncEndDate()
 
@@ -57,15 +51,9 @@ final class DateHelperTests: XCTestCase {
     }
 
     func testDateHelperWithLongerSyncWindow() {
-        let customConfig = Configuration(
-            version: "1.0",
-            calendarPair: Configuration.default.calendarPair,
-            syncWindow: Configuration.SyncWindow(weeks: 4, startOffset: 0),
-            filters: Configuration.default.filters,
-            logging: Configuration.default.logging
-        )
+        let config = Configuration.with(weeks: 4, startOffset: 0)
+        let dateHelper = DateHelper(configuration: config)
 
-        let dateHelper = DateHelper(configuration: customConfig)
         let startDate = dateHelper.getCurrentWeekStart()
         let endDate = dateHelper.getSyncEndDate()
 
@@ -94,15 +82,9 @@ final class DateHelperTests: XCTestCase {
     }
 
     func testDateHelperWithNegativeStartOffset() {
-        let customConfig = Configuration(
-            version: "1.0",
-            calendarPair: Configuration.default.calendarPair,
-            syncWindow: Configuration.SyncWindow(weeks: 3, startOffset: -2),
-            filters: Configuration.default.filters,
-            logging: Configuration.default.logging
-        )
+        let config = Configuration.with(weeks: 3, startOffset: -2)
+        let dateHelper = DateHelper(configuration: config)
 
-        let dateHelper = DateHelper(configuration: customConfig)
         let startDate = dateHelper.getCurrentWeekStart()
         let endDate = dateHelper.getSyncEndDate()
 
@@ -115,8 +97,49 @@ final class DateHelperTests: XCTestCase {
         // Start date should be 2 weeks before current week
         let defaultDateHelper = DateHelper()
         let defaultStart = defaultDateHelper.getCurrentWeekStart()
-        let expectedStart = calendar.date(byAdding: .weekOfYear, value: -2, to: defaultStart)!
+        let expectedStart = calendar.date(
+            byAdding: .weekOfYear, value: -2, to: defaultStart
+        )!
 
         XCTAssertEqual(startDate, expectedStart, "Should apply negative offset correctly")
+    }
+
+    // MARK: - DateHelper Static Method Tests
+
+    func testDateFormatting() {
+        let testDate = Date()
+        let formattedDate = DateHelper.formatDate(testDate)
+
+        XCTAssertFalse(formattedDate.isEmpty, "Formatted date should not be empty")
+        XCTAssertTrue(
+            formattedDate.contains("/") || formattedDate.contains("-")
+                || formattedDate.contains("."),
+            "Formatted date should contain date separators: \(formattedDate)"
+        )
+    }
+
+    func testDateRangeFormatting() {
+        let dateHelper = DateHelper()
+        let startDate = dateHelper.getCurrentWeekStart()
+        let endDate = dateHelper.getSyncEndDate()
+
+        let formattedRange = dateHelper.formatDateRange(start: startDate, end: endDate)
+
+        XCTAssertFalse(formattedRange.isEmpty, "Formatted range should not be empty")
+        XCTAssertTrue(formattedRange.contains(" - "), "Formatted range should contain separator")
+    }
+
+    func testLongDateFormatting() {
+        let testDate = Date()
+        let longFormatted = DateHelper.formatDateLong(testDate)
+
+        XCTAssertFalse(longFormatted.isEmpty, "Long formatted date should not be empty")
+
+        // Long format should be more detailed than short format
+        let shortFormatted = DateHelper.formatDate(testDate)
+        XCTAssertTrue(
+            longFormatted.count >= shortFormatted.count,
+            "Long format should be at least as detailed as short format"
+        )
     }
 }

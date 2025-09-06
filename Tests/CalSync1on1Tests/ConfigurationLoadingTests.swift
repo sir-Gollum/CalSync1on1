@@ -230,9 +230,9 @@ final class ConfigurationLoadingTests: XCTestCase {
     }
 
     func testConfigurationSaveAndLoad() {
-        // Create a custom configuration
+        // Create a custom configuration starting from defaults
         let customConfig = Configuration(
-            version: "1.0",
+            version: Configuration.default.version,
             calendarPair: Configuration.CalendarPair(
                 name: "Save Test",
                 source: Configuration.CalendarPair.CalendarInfo(
