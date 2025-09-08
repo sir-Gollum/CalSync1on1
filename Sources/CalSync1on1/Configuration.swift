@@ -193,23 +193,24 @@ struct Configuration: Codable {
         }
     }
 
-    /// Writes a default configuration file with helpful comments
-    /// Returns true if the configuration was written successfully
-    static func writeDefaultConfiguration() -> Bool {
-        let configPath = defaultConfigPath()
+    static func writeDefaultConfiguration(to path: String? = nil, skipConfirmation: Bool = false)
+        -> Bool {
+        let configPath = path ?? defaultConfigPath()
         let configDir = URL(fileURLWithPath: configPath).deletingLastPathComponent()
 
         // Check if config file already exists
         if FileManager.default.fileExists(atPath: configPath) {
-            Logger.info("⚠️  Configuration file already exists at:")
-            Logger.info("   \(configPath)")
-            Logger.info("")
+            if !skipConfirmation {
+                Logger.info("⚠️  Configuration file already exists at:")
+                Logger.info("   \(configPath)")
+                Logger.info("")
 
-            if !getUserConfirmation("Do you want to overwrite it?") {
-                Logger.info("✅ Keeping existing configuration file")
-                Logger.info("   You can view it with: cat \(configPath)")
-                Logger.info("   Or edit it with: open -t \(configPath)")
-                return false
+                if !getUserConfirmation("Do you want to overwrite it?") {
+                    Logger.info("✅ Keeping existing configuration file")
+                    Logger.info("   You can view it with: cat \(configPath)")
+                    Logger.info("   Or edit it with: open -t \(configPath)")
+                    return false
+                }
             }
         }
 
