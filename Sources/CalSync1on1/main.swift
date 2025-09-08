@@ -49,32 +49,43 @@ let VERSION_TEXT =
     macOS Calendar 1:1 Meeting Sync Tool
     """
 
+func handleHelp() {
+    print(HELP_TEXT)
+    exit(0)
+}
+
+func handleVersion() {
+    print(VERSION_TEXT)
+    exit(0)
+}
+
+func handleSetup() {
+    Logger.info("📅 CalSync1on1 - Configuration Setup")
+    Logger.info("===================================\n")
+
+    let success = Configuration.writeDefaultConfiguration()
+
+    exit(success ? 0 : 1)
+}
+
 func main() {
     // Parse command line arguments
     let args = CommandLineArgs.parse()
+    Logger.configure(verbose: args.verbose)
 
     // Handle help and version flags
     if args.help {
-        print(HELP_TEXT)
-        exit(0)
+        handleHelp()
     }
 
     if args.version {
-        print(VERSION_TEXT)
-        exit(0)
+        handleVersion()
     }
 
     // Handle setup flag
     if args.setup {
-        Logger.info("📅 CalSync1on1 - Configuration Setup")
-        Logger.info("===================================\n")
-
-        let success = Configuration.writeDefaultConfiguration()
-
-        exit(success ? 0 : 1)
+        handleSetup()
     }
-
-    Logger.configure(verbose: args.verbose)
 
     // Initialize components
     let configuration = Configuration.load(from: args.configPath)
