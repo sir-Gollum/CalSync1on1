@@ -17,11 +17,7 @@ class MeetingAnalyzer {
 
     // MARK: - Functions
 
-    func isOneOnOneMeeting(_ event: EKEvent, calendarOwner: String) -> Bool {
-        isOneOnOneMeeting(event, calendarOwner: calendarOwner, debug: false)
-    }
-
-    func isOneOnOneMeeting(_ event: EKEvent, calendarOwner: String, debug: Bool) -> Bool {
+    func isOneOnOneMeeting(_ event: EKEvent, calendarOwner: String, debug: Bool = false) -> Bool {
         // Skip all-day events
         if event.isAllDay {
             if debug { Logger.debug("         DEBUG: Skipping all-day event") }
