@@ -55,24 +55,26 @@ final class SyncManagerTests: XCTestCase {
     }
 
     override func tearDown() {
-        // Clean up any test events
+        // Clean up any test source events (ensure full removal of recurring series)
         for event in testEvents {
+            let span: EKSpan = event.hasRecurrenceRules ? .futureEvents : .thisEvent
             do {
-                try eventStore.remove(event, span: .thisEvent)
+                try eventStore.remove(event, span: span)
             } catch {
-                print("Warning: Could not remove test event: \(error)")
+                print("Warning: Could not remove test event (source): \(error)")
             }
         }
         testEvents = []
 
-        // Clean up destination calendar events that we created for testing
+        // Clean up destination (synced) events we created for testing (including recurring series)
         if let destCalendar {
-            let testEvents = getTestEventsFromCalendar(destCalendar)
-            for event in testEvents {
+            let syncedEvents = getTestEventsFromCalendar(destCalendar)
+            for event in syncedEvents {
+                let span: EKSpan = event.hasRecurrenceRules ? .futureEvents : .thisEvent
                 do {
-                    try eventStore.remove(event, span: .thisEvent)
+                    try eventStore.remove(event, span: span)
                 } catch {
-                    print("Warning: Could not remove test event: \(error)")
+                    print("Warning: Could not remove test event (dest): \(error)")
                 }
             }
         }
@@ -701,8 +703,8 @@ final class SyncManagerTests: XCTestCase {
                 expectedAction: "skip"
             ),
             BatchEvent(
-                title: "Recurring 1:1 with Bob",
-                attendeeEmails: ["owner@company.com", "bob@company.com"],
+                title: "Recurring 1:1 with Bob42",
+                attendeeEmails: ["owner@company.com", "bob42@company.com"],
                 isAllDay: false,
                 isRecurring: true,
                 expectedAction: "create"
@@ -903,7 +905,9 @@ final class SyncManagerTests: XCTestCase {
             }
             for event in allEvents {
                 do {
-                    try eventStore.remove(event, span: .thisEvent)
+                    // Use futureEvents span for recurring series to remove entire series
+                    let span: EKSpan = event.hasRecurrenceRules ? .futureEvents : .thisEvent
+                    try eventStore.remove(event, span: span)
                 } catch {
                     // Ignore errors during initial cleanup
                 }

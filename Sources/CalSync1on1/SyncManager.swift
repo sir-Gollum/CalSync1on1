@@ -541,9 +541,11 @@ class SyncManager {
                     )
                 } else {
                     do {
-                        try calendarManager.eventStore.remove(syncedEvent, span: .thisEvent)
+                        let span: EKSpan =
+                            syncedEvent.hasRecurrenceRules ? .futureEvents : .thisEvent
+                        try calendarManager.eventStore.remove(syncedEvent, span: span)
                         Logger.info(
-                            "🗑️  Deleted orphaned: '\(syncedEvent.title ?? "Untitled")'"
+                            "🗑️  Deleted orphaned\(syncedEvent.hasRecurrenceRules ? " recurring series" : ""): '\(syncedEvent.title ?? "Untitled")'"
                                 + " starting \(DateHelper.formatDate(syncedEvent.startDate))"
                         )
                         deletedCount += 1
