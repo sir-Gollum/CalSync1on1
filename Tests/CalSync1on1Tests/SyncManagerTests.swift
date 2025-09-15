@@ -395,9 +395,9 @@ final class SyncManagerTests: XCTestCase {
             TemplateTestCase(
                 description: "Simple template - just other person",
                 titleTemplate: "{{otherPerson}}",
-                attendeeEmails: ["owner@company.com", "carol.white@company.com"],
+                attendeeEmails: ["owner@company.com", "carol.white42@company.com"],
                 calendarOwner: "owner@company.com",
-                expectedTitleContains: "Carol White"
+                expectedTitleContains: "Carol White42"
             ),
             TemplateTestCase(
                 description: "Template with emoji and symbols",

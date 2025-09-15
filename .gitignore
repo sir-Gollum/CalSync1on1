@@ -42,3 +42,6 @@ Package.resolved
 .swiftpm/
 
 .vscode
+
+# Version / build info
+Sources/CalSync1on1/BuildInfo.swift

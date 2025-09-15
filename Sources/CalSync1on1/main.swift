@@ -45,7 +45,7 @@ let HELP_TEXT =
 
 let VERSION_TEXT =
     """
-    CalSync1on1 version 0.5
+    CalSync1on1 version \(BuildInfo.composite)
     macOS Calendar 1:1 Meeting Sync Tool
     """
 

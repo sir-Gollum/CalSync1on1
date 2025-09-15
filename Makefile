@@ -47,14 +47,20 @@ install-deps:
 	@echo "  • make format  - Format code with SwiftFormat"
 	@echo "  • make test    - Run tests with pretty output"
 
+
+.PHONY: generate-build-info
+## Generate build info module
+generate-build-info:
+	./scripts/generate_build_info.sh
+
 .PHONY: build
 ## Build the project in release mode
-build:
+build: generate-build-info
 	swift build -c release
 
 .PHONY: debug
 ## Build in debug mode
-debug:
+debug: generate-build-info
 	swift build
 
 .PHONY: run
