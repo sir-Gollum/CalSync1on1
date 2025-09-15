@@ -1,49 +1,57 @@
 # CalSync1on1 - macOS Calendar Sync Tool
 
-A Swift command-line tool that automatically synchronizes 1:1 meetings from a work calendar to a personal/home calendar on macOS. The tool identifies meetings with exactly 2 participants (including the calendar owner) and creates corresponding "1:1 with [Person]" events in the destination calendar with intelligent metadata tracking and conflict resolution.
+A Swift command-line tool that automatically synchronizes 1:1 meetings from a work calendar to a personal/home calendar on macOS. The tool identifies meetings with exactly 2 participants (including the calendar owner) and creates corresponding "1:1 with [Person]" events in the destination calendar with metadata tracking and conflict resolution.
 
 ## Overview
 
-This tool helps you share your 1:1 meeting schedule with family members without exposing sensitive work details. It provides intelligent event linking, dry-run capabilities, YAML configuration, and comprehensive debugging features.
+This tool helps you share your 1:1 meeting schedule with family members without exposing sensitive work details. It provides event linking, dry-run capabilities, YAML configuration, and verbose mode for debugging.
 
 ## ✨ Features
 
 ### Core Functionality
-- **Smart 1:1 Detection**: Identifies meetings with exactly 2 attendees (including calendar owner)
+- **1:1 Detection**: Identifies meetings with exactly 2 attendees (including calendar owner)
 - **Configurable Sync Window**: Sync current week + configurable future weeks
-- **Intelligent Event Linking**: Uses metadata for reliable event tracking and updates
-- **Duplicate Prevention**: Avoids creating duplicate events with smart comparison
+- **Event Linking**: Uses metadata for reliable event tracking and updates
+- **Duplicate Prevention**: Avoids creating duplicate events by checking metadata
 - **Orphan Cleanup**: Automatically removes synced events when source meetings are deleted or modified
 - **Template-Based Titles**: Customizable event title formats (e.g., "1:1 with [Person]")
-
-### Advanced Features
 - **YAML Configuration**: Flexible configuration with single calendar pair setup
 - **Dry-Run Mode**: Preview changes before applying them
 - **Event Filtering**: Skip all-day events, exclude keywords, filter by privacy
 - **Comprehensive Logging**: Detailed operation logging with configurable verbosity
-- **Error Recovery**: Comprehensive error handling with helpful messages
-- **Command-Line Interface**: Full CLI with help, version, and configuration options
-
-### Smart Event Management
-- **Metadata Tracking**: JSON metadata embedded in event notes for reliable linking
-- **Update Detection**: Automatically updates existing events when source changes
-- **Conflict Resolution**: Handles calendar conflicts gracefully
-- **Recurring Event Support**: Complete handling of recurring 1:1 meeting series
 
 ## 🔧 Requirements
 
 - **macOS 13.0+** (Ventura or later)
-- **Swift 5.8+** and Xcode command-line tools
 - **Calendar app** with configured work and personal calendars
 - **Calendar permissions** (will prompt on first run)
+- To buid, **Swift 6.0+** and Xcode command-line tools are required
 
 ## 🚀 Installation & Setup
 
-### Quick Installation
+### Installing from Release
+
+1. **Download** the latest release from GitHub
+2. **Extract** the archive:
+```bash
+tar -xzf calsync1on1-<version>-macos-universal.tar.gz
+```
+
+3. **Fix macOS quarantine** (may be required for downloaded binaries):
+```bash
+# Remove quarantine attribute to avoid "developer cannot be verified" error
+xattr -d com.apple.quarantine ~/Downloads/calsync1on1
+# Move to a directory in your PATH
+mv ~/Downloads/calsync1on1 /usr/local/bin/
+```
+
+**Note**: Downloaded binaries from GitHub may show a "developer cannot be verified" error. This is normal for unsigned binaries. The `xattr -d com.apple.quarantine` command removes the quarantine flag that macOS adds to downloaded files.
+
+### Building and installing from source
 
 1. **Clone and build:**
 ```bash
-git clone <repository-url>
+git clone https://github.com/sir-Gollum/CalSync1on1.git
 cd CalSync1on1
 make build
 ```
@@ -60,22 +68,6 @@ make setup
 calsync1on1 --setup
 ```
 
-### Manual Setup
-
-1. **Build the project:**
-```bash
-swift build -c release
-```
-
-2. **The executable will be at:**
-```
-.build/release/calsync1on1
-```
-
-3. **Create configuration directory:**
-```bash
-mkdir -p ~/.config/calsync1on1
-```
 
 ## ⚙️ Configuration
 
@@ -90,40 +82,6 @@ calsync1on1 --setup
 
 This will guide you through creating a configuration file with your calendar names, sync preferences, and filtering rules. The setup creates a comprehensive configuration file with helpful comments and troubleshooting tips.
 
-### Manual Configuration
-
-Create `~/.config/calsync1on1/config.yaml`:
-
-```yaml
-version: "1.0"
-
-calendar_pair:
-  name: "Work to Personal"
-  source:
-    account: "work@company.com"      # Optional: specify account
-    calendar: "Work Calendar"        # Your work calendar name (exact match required)
-  destination:
-    account: "personal@gmail.com"    # Optional: specify account
-    calendar: "Personal Calendar"    # Your personal calendar name (exact match required)
-  title_template: "1:1 with {{otherPerson}}"
-  # CRITICAL: Set your actual email address for accurate 1:1 detection
-  owner_email: "john.doe@company.com"
-
-sync_window:
-  weeks: 2                      # Sync current + next week
-  start_offset: 0               # Start from current week
-
-filters:
-  exclude_all_day: true         # Skip all-day events
-  exclude_keywords:             # Skip events with these keywords
-    - "standup"
-    - "all-hands"
-    - "team meeting"
-
-logging:
-  level: "info"                 # error, warn, info, debug
-  colored_output: true
-```
 
 ## 🎯 Usage
 
@@ -320,26 +278,6 @@ make clean          # Clean build artifacts
 make check          # Comprehensive validation
 ```
 
-### Project Structure
-```
-CalSync1on1/
-├── Sources/CalSync1on1/
-│   ├── CalendarManager.swift            # EventKit calendar operations
-│   ├── Configuration.swift              # YAML config management & validation
-│   ├── DateHelper.swift                 # Date range utilities
-│   ├── DebugHelper.swift                # Comprehensive debugging utilities
-│   ├── EventFilter.swift                # Event filtering logic
-│   ├── EventMetadata.swift              # Metadata tracking for event linking
-│   ├── Logger.swift                     # Logging system with verbosity levels
-│   ├── main.swift                       # CLI entry point and main logic
-│   ├── MeetingAnalyzer.swift            # 1:1 meeting detection logic
-│   └── SyncManager.swift                # Event synchronization engine
-├── Tests/CalSync1on1Tests/              # Comprehensive unit tests
-├── Makefile                             # Build automation
-├── Package.swift                        # Swift package manifest
-└── README.md
-```
-
 ## 🚨 Troubleshooting
 
 ### Common Issues
@@ -352,6 +290,10 @@ CalSync1on1/
 - Calendar names must match EXACTLY (case-sensitive)
 - Run `calsync1on1 --verbose --dry-run` to see all available calendar names
 - Run setup again: `calsync1on1 --setup`
+
+**"calsync1on1 cannot be opened because the developer cannot be verified"**
+- This happens with downloaded binaries from GitHub releases
+- Remove the quarantine attribute: `xattr -d com.apple.quarantine /path/to/calsync1on1`
 
 **"No 1:1 meetings found" - Most Common Issue**
 - **CRITICAL**: Set `owner_email` in your config to your actual email address
@@ -380,26 +322,6 @@ calsync1on1 --verbose --dry-run
 - Detailed filter application results
 - Diagnostic recommendations for common issues
 
-### Debugging No 1:1 Meetings Found
-
-1. **Check owner email matching:**
-```bash
-# Look for lines like:
-# "Using owner identifier: 'john.doe@company.com'"
-# "Event has 2 attendees but owner not found in: [attendee1, attendee2]"
-```
-
-2. **Verify calendar names:**
-```bash
-# Look for the "Available calendars:" section
-# Use exact names shown there in your config
-```
-
-3. **Check date range:**
-```bash
-# Widen the sync window temporarily for testing:
-# weeks: 4, start_offset: -1
-```
 
 ## 📚 Automation
 
@@ -449,7 +371,3 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Built with Swift and EventKit framework
 - YAML configuration powered by [Yams](https://github.com/jpsim/Yams)
 - Inspired by the need to share work schedules with family while maintaining privacy
-
----
-
-**Made with ❤️ for macOS users who want to share their 1:1 schedule with family**

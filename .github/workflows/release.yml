@@ -1,0 +1,64 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+
+jobs:
+  build-and-release:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout (full history for tags)
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Swift
+        uses: swift-actions/setup-swift@v2.3.0
+        with:
+          swift-version: "6.0"
+
+      - name: Generate build info
+        run: bash scripts/generate_build_info.sh
+
+      - name: Run tests
+        run: |
+          xcrun swift test --parallel --num-workers 4
+          echo "Listing test bundles after execution:"
+          find .build -name "*.xctest" -maxdepth 6 || true
+
+      - name: Build release binary
+        run: make build
+
+      - name: Collect artifacts
+        run: |
+          mkdir -p dist
+          cp .build/universal-apple-macosx/release/calsync1on1 dist/
+          # Remove extended attributes that cause quarantine issues
+          xattr -c dist/calsync1on1
+          tar -C dist -czf calsync1on1-${{ github.ref_name }}-macos-universal.tar.gz calsync1on1
+          ls -lh dist/
+          file dist/calsync1on1
+          lipo -info dist/calsync1on1
+          ls -lh calsync1on1-${{ github.ref_name }}-macos-universal.tar.gz
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: calsync1on1-macos-universal
+          path: calsync1on1-${{ github.ref_name }}-macos-universal.tar.gz
+          if-no-files-found: error
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        if: github.ref_type == 'tag'
+        with:
+          name: CalSync1on1 ${{ github.ref_name }}
+          draft: true
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          files: calsync1on1-${{ github.ref_name }}-macos-universal.tar.gz
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASER_TOKEN }}

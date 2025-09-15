@@ -56,7 +56,13 @@ generate-build-info:
 .PHONY: build
 ## Build the project in release mode
 build: generate-build-info
-	swift build -c release
+	swift build -c release --arch arm64
+	swift build -c release --arch x86_64
+	mkdir -p .build/universal-apple-macosx/release
+	lipo -create \
+		.build/arm64-apple-macosx/release/calsync1on1 \
+		.build/x86_64-apple-macosx/release/calsync1on1 \
+		-output .build/universal-apple-macosx/release/calsync1on1
 
 .PHONY: debug
 ## Build in debug mode
@@ -66,7 +72,7 @@ debug: generate-build-info
 .PHONY: run
 ## Build and run the project
 run: build
-	./.build/release/calsync1on1
+	./.build/universal-apple-macosx/release/calsync1on1
 
 .PHONY: test
 ## Run tests
@@ -103,7 +109,7 @@ clean:
 ## Install to /usr/local/bin
 install: build
 	@echo "Installing calsync1on1 to /usr/local/bin..."
-	@sudo cp .build/release/calsync1on1 /usr/local/bin/
+	@sudo cp .build/universal-apple-macosx/release/calsync1on1 /usr/local/bin/
 	@echo "Installation complete. You can now run 'calsync1on1' from anywhere."
 	@echo ""
 	@echo "Next steps:"
@@ -115,7 +121,7 @@ install: build
 # Run interactive configuration setup
 setup: build
 	@echo "Setting up CalSync1on1 configuration..."
-	@./.build/release/calsync1on1 --setup
+	@./.build/universal-apple-macosx/release/calsync1on1 --setup
 
 .PHONY: clean
 # Comprehensive validation

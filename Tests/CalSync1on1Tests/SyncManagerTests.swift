@@ -27,16 +27,14 @@ final class SyncManagerTests: XCTestCase {
 
         // Use the default calendar as both source and destination for simplicity
         // This avoids permission issues with creating calendars
-        sourceCalendar =
-            eventStore.defaultCalendarForNewEvents
-                ?? {
-                    let availableCalendars = eventStore.calendars(for: .event)
-                    guard let firstCalendar = availableCalendars.first else {
-                        fatalError("No calendars available for testing")
-                    }
-                    return firstCalendar
-                }()
+        let availableCalendars = eventStore.calendars(for: .event)
+        guard let firstCalendar = eventStore.defaultCalendarForNewEvents ?? availableCalendars.first
+        else {
+            // Skip tests if no calendars are available (e.g., in CI environments)
+            return
+        }
 
+        sourceCalendar = firstCalendar
         destCalendar = sourceCalendar
 
         analyzer = createTestAnalyzer()
@@ -99,7 +97,10 @@ final class SyncManagerTests: XCTestCase {
 
     // MARK: - Core Sync Operation Tests
 
-    func testEventSyncBehavior() {
+    func testEventSyncBehavior() throws {
+        guard sourceCalendar != nil else {
+            throw XCTSkip("No calendars available for testing")
+        }
         // Comprehensive test cases covering all sync scenarios
         struct SyncTestCase {
             let description: String
@@ -297,7 +298,10 @@ final class SyncManagerTests: XCTestCase {
         }
     }
 
-    func testDryRunVsActualExecution() {
+    func testDryRunVsActualExecution() throws {
+        guard sourceCalendar != nil else {
+            throw XCTSkip("No calendars available for testing")
+        }
         let testCases = [
             (
                 description: "1:1 meeting dry run",
@@ -367,7 +371,10 @@ final class SyncManagerTests: XCTestCase {
         }
     }
 
-    func testTitleTemplateVariations() {
+    func testTitleTemplateVariations() throws {
+        guard sourceCalendar != nil else {
+            throw XCTSkip("No calendars available for testing")
+        }
         // Test different title template formats
         struct TemplateTestCase {
             let description: String
@@ -503,7 +510,10 @@ final class SyncManagerTests: XCTestCase {
         }
     }
 
-    func testUpdateScenarios() {
+    func testUpdateScenarios() throws {
+        guard sourceCalendar != nil else {
+            throw XCTSkip("No calendars available for testing")
+        }
         // Clear any existing test events to ensure clean state
         clearAllTestEvents()
 
@@ -629,7 +639,10 @@ final class SyncManagerTests: XCTestCase {
         )
     }
 
-    func testCleanupScenarios() {
+    func testCleanupScenarios() throws {
+        guard sourceCalendar != nil else {
+            throw XCTSkip("No calendars available for testing")
+        }
         // Clear any existing test events to ensure clean state
         clearAllTestEvents()
 
@@ -674,7 +687,10 @@ final class SyncManagerTests: XCTestCase {
 
     }
 
-    func testBatchEventProcessing() {
+    func testBatchEventProcessing() throws {
+        guard sourceCalendar != nil else {
+            throw XCTSkip("No calendars available for testing")
+        }
         // Clear any existing test events to ensure clean state
         clearAllTestEvents()
 
@@ -749,7 +765,10 @@ final class SyncManagerTests: XCTestCase {
         )
     }
 
-    func testErrorHandling() {
+    func testErrorHandling() throws {
+        guard sourceCalendar != nil else {
+            throw XCTSkip("No calendars available for testing")
+        }
         struct ErrorTestCase {
             let description: String
             let sourceCalendar: EKCalendar
@@ -801,7 +820,10 @@ final class SyncManagerTests: XCTestCase {
         }
     }
 
-    func testSyncResultStructure() {
+    func testSyncResultStructure() throws {
+        guard sourceCalendar != nil else {
+            throw XCTSkip("No calendars available for testing")
+        }
         let result = SyncManager.SyncResult(
             created: 2,
             updated: 1,
